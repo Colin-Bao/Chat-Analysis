@@ -1,0 +1,1 @@
+/opt/homebrew/Caskroom/miniconda/base/envs/Spider/bin/python '/Users/colin/Library/Mobile Documents/com~apple~CloudDocs/PycharmProjects/pythonProject/DuopeiSpider/main.py' --webcore 'webkit' --timeout 40
