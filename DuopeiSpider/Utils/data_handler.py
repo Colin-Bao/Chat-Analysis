@@ -11,6 +11,7 @@ class DataHandler:
         self.ROOT_PATH = root_path
         self.user_daily_dir = None
         self.snapshot_dir = None
+        self.user_info_dir = None
         self.url = url
 
         # 创建目录
@@ -40,8 +41,11 @@ class DataHandler:
         """
         self.user_daily_dir = os.path.join(self.ROOT_PATH, 'user_daily_data')
         self.snapshot_dir = os.path.join(self.ROOT_PATH, 'snapshots')
+        self.user_info_dir = os.path.join(self.ROOT_PATH, 'user_info')
         os.makedirs(self.user_daily_dir, exist_ok=True)
         os.makedirs(self.snapshot_dir, exist_ok=True)
+        os.makedirs(self.user_info_dir, exist_ok=True)
+
 
     async def get_snapshot(self, df_parse: pd.DataFrame, table_name, table_type) -> pd.DataFrame:
         """
