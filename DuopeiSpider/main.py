@@ -1,11 +1,9 @@
 import sys
 
 sys.path.append('/home/ubuntu/PycharmProjects/Chat-Analysis')
-sys.path.append('/home/ubuntu/PycharmProjects/Chat-Analysis/DuopeiSpider')
-
 import asyncio
 from DuopeiSpider.async_scraper import Scraper
-from DuopeiSpider.js_script import website_dict
+from DuopeiSpider.js_script import WEBSITE_DICT
 from DuopeiSpider import setting as cf
 import argparse
 import time
@@ -22,7 +20,6 @@ def parse_args():
 
 
 async def main():
-    # nohup python '/home/ubuntu/PycharmProjects/Chat-Analysis/DuopeiSpider/main.py' > /home/ubuntu/DataSets/2023-Escort/logs/main_log.log &
     # nohup /home/ubuntu/miniconda3/envs/PlaySpider/bin/python '/home/ubuntu/PycharmProjects/Chat-Analysis/DuopeiSpider/main.py' > /dev/null 2>&1 &
 
     # 程序运行参数
@@ -34,12 +31,11 @@ async def main():
             try:
                 await scraper.log(f'\n\n---------------------------【开始爬取】{args.dsdir}---------------------------\n',
                                   {'class_name': 'main', 'url_name': 'all'})
-                tasks = [scraper.run(website) for website, _ in website_dict.items()]
+                tasks = [scraper.run(website) for website, _ in WEBSITE_DICT.items()]
                 await asyncio.gather(*tasks)
             except Exception as e:
                 await scraper.log(f'Error occurred: {e}', {'class_name': 'main', 'url_name': 'all'}, 'error')
             time.sleep(cf.CRAWL_INTERVAL)
-            break
 
 
 if __name__ == "__main__":

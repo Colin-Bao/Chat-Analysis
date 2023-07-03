@@ -102,5 +102,6 @@ class DataHandler:
         if not os.path.isfile(file_path):
             df.to_parquet(file_path, engine='fastparquet')
         else:
+            assert len(df.columns) == len(pd.read_parquet(file_path).columns)
             df.to_parquet(file_path, engine='fastparquet', append=True)
         await self.log(f'面板数据保存成功', {'func_name': 'save_append'})

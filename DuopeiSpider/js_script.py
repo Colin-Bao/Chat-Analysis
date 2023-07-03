@@ -1,7 +1,23 @@
 import re
 
+
+def test():
+    pass
+    # type_config = {'Rank': 'uint16', 'Name': 'category', 'Sex': 'bool', 'Age': 'uint8',
+    #                'Online': 'bool', 'Grade': 'uint8', 'Text': 'bool',
+    #                'Call': 'bool', 'Video': 'bool', 'Game': 'bool'}
+
+    # df['Grade'] = pd.to_numeric(df['Grade'].str[:2], errors='coerce')
+    # df['Text'] = df['Service'].str.contains('文语', case=False)
+    # df['Call'] = df['Service'].str.contains('连麦', case=False)
+    # df['Video'] = df['Service'].str.contains('视频', case=False)
+    # df['Game'] = df['Service'].str.contains('游戏', case=False)
+    # df['Sex'] = df['Sex'].apply(lambda x: True if x == '255' else False)
+    # df['Online'] = df['Online'].apply(lambda x: True if x == '在线' else False)
+
+
 # 定义一些解析函数，每个函数处理一种URL模式
-async def parse_url_pattern_1(gift_str: str) -> tuple:
+async def parse_url_pattern_1(gift_str: str) -> tuple[str,str,float]:
     # 处理方式1 糖恋
     name, rest = gift_str.split('被打赏了', 1)
     # 分别考虑2种模式
@@ -14,7 +30,7 @@ async def parse_url_pattern_1(gift_str: str) -> tuple:
     return name.strip(), gift.strip(), float(amount)
 
 
-async def parse_url_pattern_2(gift_str: str) -> tuple:
+async def parse_url_pattern_2(gift_str: str) -> tuple[str,str,float]:
     # 处理方式2 天空猫
     name = gift_str.split('】')[0].replace('【', '')
     amount = gift_str.split('打赏')[1].replace('元', '').strip()
@@ -22,7 +38,7 @@ async def parse_url_pattern_2(gift_str: str) -> tuple:
     return name.strip(), gift.strip(), float(amount)
 
 
-async def parse_url_pattern_3(gift_str: str) -> tuple:
+async def parse_url_pattern_3(gift_str: str) -> tuple[str,str,float]:
     # 处理方式3 橘色灯罩
     name, rest = gift_str.split('打赏给')[1].split('】', 1)
     name = name.replace('【', '')
@@ -36,7 +52,7 @@ async def parse_url_pattern_3(gift_str: str) -> tuple:
     return name.strip(), gift.strip(), float(amount)
 
 
-async def parse_url_pattern_4(gift_str: str) -> tuple:
+async def parse_url_pattern_4(gift_str: str) -> tuple[str,str,float]:
     # 处理方式4 清欢
     name, rest = gift_str.split('收到了客人打赏', 1)
     name = re.search(r'【(.*?)】', name).group(1)
@@ -46,76 +62,20 @@ async def parse_url_pattern_4(gift_str: str) -> tuple:
 
 
 #
-website_dict = {
-        'http://tj5uhmrpeq.duopei-m.featnet.com':
-            {
-                    'url': 'http://tj5uhmrpeq.duopei-m.featnet.com',
-                    'name': '糖恋树洞',
-                    'page_finished_selector': '.van-list__finished-text',
-                    'user_info_selector':
-                        {
-                                'Name': '.name.text-ellipsis', 'Age': '.sex-age',
-                                'Sex': '.sex-age',
-                                'Online': '.StatusEnum',
-                                'Grade': '.minPrice',
-                                'Service': '.status.text-ellipsis'
-                        },
-                    'gift_info_selector': '.swiper-slide:not(.swiper-slide-duplicate)',
-                    'url_to_parser': parse_url_pattern_1,
-            },
-        'http://oxxs5iqzqz.duopei-m.manongnet.cn':
-            {
-                    'url': 'http://oxxs5iqzqz.duopei-m.manongnet.cn',
-                    'name': '天空猫的树洞',
-                    'page_finished_selector': '.van-list__finished-text',
-                    'user_info_selector':
-                        {
-                                'Name': '.name', 'Age': '.sex-age',
-                                'Sex': '.sex-age',
-                                'Online': '.status.text-ellipsis',
-                                'GradeImg': '.grade img',
-                                'Service': '.status.text-ellipsis'
-                        },
-                    'gift_info_selector': '.swiper-slide:not(.swiper-slide-duplicate)',
-                    'url_to_parser': parse_url_pattern_2,
-            },
-        'http://8mukjha763.duopei-m.99c99c.com':
-            {
-                    'url': 'http://8mukjha763.duopei-m.99c99c.com',
-                    'name': '橘色灯罩',
-                    'page_finished_selector': '.van-list__finished-text',
-                    'user_info_selector':
-                        {
-                                'Name': '.name.text-ellipsis', 'Age': '.sex-age',
-                                'SexImg': '.sex-age img',
-                                'Online': '.switch-name',
-                                'Position': '.position.align-center',
-                                'GradeImg': '.clerk-item__body > div:nth-child(2) > img',
-                                'Service': '.switch-name'
-                        },
-                    'gift_info_selector': '.swiper-slide:not(.swiper-slide-duplicate)',
-                    'url_to_parser': parse_url_pattern_3,
-            },
-        'http://fhpkn3rf85.duopei-m.manongnet.cn':
-            {
-                    'url': 'http://fhpkn3rf85.duopei-m.manongnet.cn',
-                    'name': '清欢树洞',
-                    'page_finished_selector': '.van-list__finished-text',
-                    'user_info_selector':
-                        {
-                                'Name': '.name', 'Age': '.sex-age',
-                                'SexImg': '.sex-age img',
-                                'Online': '.status.text-ellipsis',
-                                'GradeImg': '.grade img',
-                                'Service': '.status.text-ellipsis'
-                        },
-                    'gift_info_selector': '.swiper-slide:not(.swiper-slide-duplicate)',
-                    'url_to_parser': parse_url_pattern_4,
-            },
-}
+import json
+with open("/home/ubuntu/PycharmProjects/Chat-Analysis/DuopeiSpider/js_scripts/user_selector.json", "r") as file:
+    json_data = file.read()
+WEBSITE_DICT = json.loads(json_data)
+
+# 'http://tj5uhmrpeq.duopei-m.featnet.com' ok
+# http://oxxs5iqzqz.duopei-m.manongnet.cn ok
+# http://8mukjha763.duopei-m.99c99c.com 不一致
+# http://fhpkn3rf85.duopei-m.manongnet.cn ok
+# WEBSITE_DICT = {key: value for key, value in WEBSITE_DICT.items() if key == 'http://8mukjha763.duopei-m.99c99c.com'}
+
 
 ## 提取用户信息JS代码
-extract_user_info_js = '''(itemDict) => {
+JS_USER_INFO = '''(itemDict) => {
                         const elements = document.querySelectorAll('.van-cell__value.van-cell__value--alone');
                         const data = [];
                         for (const element of elements) {
@@ -146,34 +106,3 @@ extract_user_info_js = '''(itemDict) => {
                         return data;
                     }
                 '''
-
-# async def ex_js():
-#     from playwright.async_api import async_playwright
-#     import time
-#
-#     async with async_playwright() as playwright:
-#         # 启动浏览器
-#         browser = await playwright.chromium.launch()
-#
-#         # 测试
-#         for website in website_dict:
-#             st = time.time()
-#
-#             # 在浏览器中创建新的页面
-#             page = await browser.new_page()
-#
-#             # 打开网页
-#             await page.goto(website['url'])
-#             while not await page.locator('.van-list__finished-text').count():
-#                 await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-#             data = await page.evaluate(extract_user_info_js, website['user_info_selector'])
-#             print(data[:5])
-#
-#         # 关闭浏览器
-#         await browser.close()
-
-#
-# if __name__ == '__main__':
-#     import asyncio
-#
-#     asyncio.run(ex_js())

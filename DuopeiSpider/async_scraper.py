@@ -1,17 +1,13 @@
 import playwright.async_api
-
+from playwright.async_api import async_playwright, Page, TimeoutError as PlaywrightTimeoutError, Error as PlaywrightError
+from DuopeiSpider.js_script import *
 from DuopeiSpider.data_handler import DataHandler
 from DuopeiSpider.logger import Logger
 from DuopeiSpider import setting as cf
-from DuopeiSpider.js_script import website_dict, extract_user_info_js
 
-import re
-import asyncio
-from playwright.async_api import async_playwright, Page, TimeoutError as PlaywrightTimeoutError
 import pandas as pd
 import time
 import datetime
-import sys
 
 
 class Scraper:
@@ -26,6 +22,7 @@ class Scraper:
 
         # 数据处理
         self.data_handler = data_handler
+        # self.json
 
         # 日志处理
         self.logger = Logger(f"{cf.DS_PATH}/logs")
@@ -73,15 +70,18 @@ class Scraper:
         """
 
         # 发送JS
-        item_classname = website_dict[url]['gift_info_selector']
+        item_classname = WEBSITE_DICT[url]['gift_info_selector']
         data_list = await page.evaluate(
-            f'Array.from(document.querySelectorAll("{item_classname}")).map(e => e.textContent.trim())')  # 一个包含所有选定元素文本内容的字符串列表
+                f'Array.from(document.querySelectorAll("{item_classname}")).map(e => e.textContent.trim())')  # 一个包含所有选定元素文本内容的字符串列表
 
         # 根据URL选择相应的解析函数
-        extracted_data = [await website_dict[url]['url_to_parser'](item) for item in data_list]
-        df_gift = pd.DataFrame(extracted_data, columns=['Name', 'Content', 'Num'])
+        # extracted_data =
+        # extracted_data = [await WEBSITE_DICT[url]['url_to_parser'](item) for item in data_list]
+        df_gift = pd.DataFrame([await (globals().get(WEBSITE_DICT[url]['url_to_parser']))(item) for item in data_list],
+                               columns=['Name', 'Content', 'Num'])
         df_gift['Date'] = parse_time
-        df_gift = df_gift.astype(dtype={'Name': 'str', 'Content': 'str', 'Num': 'float'})
+        df_gift['Source'] = url
+        df_gift = df_gift.astype(dtype={'Name': 'str', 'Content': 'str', 'Num': 'float','Source':'str'})
 
         # 返回
         await self.log('礼物数据解析成功', {'func_name': 'parse_gift', 'url_name': url})
@@ -93,74 +93,66 @@ class Scraper:
         :return:
         """
 
-        async def df_trans(df) -> pd.DataFrame:
-            """
-            处理Dataframe
-            :return:
-            """
-            # type_config = {'Rank': 'uint16', 'Name': 'category', 'Sex': 'bool', 'Age': 'uint8',
-            #                'Online': 'bool', 'Grade': 'uint8', 'Text': 'bool',
-            #                'Call': 'bool', 'Video': 'bool', 'Game': 'bool'}
+        # 提取用户面板数据
+        df_user = pd.DataFrame(await page.evaluate(JS_USER_INFO, WEBSITE_DICT[url]['user_info_selector']))
+        assert len(df_user.columns) == len(WEBSITE_DICT[url]['user_info_selector'])
+        df_user['Age'] = df_user['Age'].replace('', 0)
+        df_user['Date'] = parse_time
+        df_user['Rank'] = range(len(df_user))
+        df_user['Source'] = url
 
-            # df['Grade'] = pd.to_numeric(df['Grade'].str[:2], errors='coerce')
-            # df['Text'] = df['Service'].str.contains('文语', case=False)
-            # df['Call'] = df['Service'].str.contains('连麦', case=False)
-            # df['Video'] = df['Service'].str.contains('视频', case=False)
-            # df['Game'] = df['Service'].str.contains('游戏', case=False)
-            # df['Sex'] = df['Sex'].apply(lambda x: True if x == '255' else False)
-            # df['Online'] = df['Online'].apply(lambda x: True if x == '在线' else False)
-
-            # 返回供外部调用
-            # df = df.drop(columns=['Service']).astype(type_config)
-            # 全部处理成str
-            df = df.astype('str')
-            df['Date'] = parse_time
-            df['Rank'] = range(len(df))
-            return df
-
-        # 提取、转换和保存用户面板数据
-        df_user = await df_trans(pd.DataFrame(await page.evaluate(extract_user_info_js, website_dict[url]['user_info_selector'])))
-        await self.log(f'用户数据解析成功\n{df_user.columns.tolist()}', {'func_name': 'parse_clerk', 'url_name': url})
-        return df_user
+        # 类型转换
+        await self.log('用户数据解析成功', {'func_name': 'parse_clerk', 'url_name': url})
+        return df_user.astype(dtype=WEBSITE_DICT[url]['user_info_type'])
 
     async def run(self, url):
         """
         browser.new_context() 和 context.new_page(),
         在每次循环中创建新的上下文和页面可以有助于隔离每次迭代的状态，避免不同迭代之间的潜在冲突。
+        # async with await self.browser.new_context() as context:
         """
 
-        # 打开上下文
-        # self.browser.new_page()
-        # async with await self.browser.new_context() as context:
         # 0.创建页面
         page = await self.browser.new_page()
         page.set_default_timeout(self.TIME_OUT * 1000)  # 默认超时
+        # 启用请求拦截
+        await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
+        try:
+            # 1.访问页面
+            await page.goto(url)
 
-        # 1.访问页面
-        await page.goto(url)
+            # 2.滚动页面
+            scroll_st = time.time()
+            await self.log('页面开始滚动', {'func_name': 'run', 'url_name': url})
+            while not await page.locator(WEBSITE_DICT[url]['page_finished_selector']).count():
+                await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+                if time.time() - scroll_st > float(self.TIME_OUT):
+                    raise PlaywrightTimeoutError(f'滚动超时：{self.TIME_OUT}')
+            scroll_et = datetime.datetime.now()
+            await self.log('页面滚动完毕', {'func_name': 'run', 'url_name': url})
 
-        # 2.滚动页面
-        scroll_st = time.time()
-        await self.log('页面开始滚动', {'func_name': 'run', 'url_name': url})
-        while not await page.locator(website_dict[url]['page_finished_selector']).count():
-            await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-            if time.time() - scroll_st > float(self.TIME_OUT):
-                raise PlaywrightTimeoutError(f'滚动超时：{self.TIME_OUT}')
-        scroll_et = datetime.datetime.now()
-        await self.log('页面滚动完毕', {'func_name': 'run', 'url_name': url})
+            # 3.解析页面
+            # -----------------绑定处理类 -----------------#
+            self.data_handler = DataHandler(f"{cf.DS_PATH}/{WEBSITE_DICT[url]['name']}",
+                                            (self.info_logger, self.warn_logger, self.error_logger), url)
 
-        # 3.解析页面
-        # -----------------绑定处理类 -----------------#
-        self.data_handler = DataHandler(f"{cf.DS_PATH}/{website_dict[url]['name']}",
-                                        (self.info_logger, self.warn_logger, self.error_logger), url)
+            # -----------------对比礼物信息变更 -----------------#
+            df_gift = await self.parse_gift(page, scroll_et, url)
+            await self.data_handler.update_info_change(df_gift, 'gift', 'add')
 
-        # -----------------对比礼物信息变更 -----------------#
-        df_gift = await self.parse_gift(page, scroll_et, url)
-        print(df_gift)
-        # await self.data_handler.update_info_change(df_gift, 'gift', 'add')
+            # -----------------对比用户信息变更 -----------------#
+            df_user = await self.parse_clerk(page, scroll_et, url)
+            await self.data_handler.save_append(df_user, self.data_handler.user_daily_dir + '/' + str(scroll_et.date()))  # 面板数据
+            await self.data_handler.update_info_change(df_user, 'user', 'add')
+            await self.data_handler.update_info_change(df_user, 'user', 'remove')
 
-        # -----------------对比用户信息变更 -----------------#
-        # df_user = await self.parse_clerk(page, scroll_et, url)
-        # await self.data_handler.save_append(df_user, self.data_handler.user_daily_dir + '/' + str(scroll_et.date()))  # 面板数据
-        # await self.data_handler.update_info_change(df_user, 'user', 'add')
-        # await self.data_handler.update_info_change(df_user, 'user', 'remove')
+        except PlaywrightTimeoutError as e:
+            await self.log(f'Error occurred: {e}', {'class_name': 'run', 'url_name': url}, 'error')
+        except PlaywrightError as e:
+            await self.log(f'Error occurred: {e}', {'class_name': 'run', 'url_name': url}, 'error')
+        except Exception as e:
+            await self.log(f'Error occurred: {e}', {'class_name': 'run', 'url_name': url}, 'error')
+
+        finally:
+            # 4.关闭页面
+            await page.close()

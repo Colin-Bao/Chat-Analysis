@@ -1,0 +1,100 @@
+{
+  "http://tj5uhmrpeq.duopei-m.featnet.com": {
+    "url": "http://tj5uhmrpeq.duopei-m.featnet.com",
+    "name": "糖恋树洞",
+    "page_finished_selector": ".van-list__finished-text",
+    "user_info_selector": {
+      "Name": ".name.text-ellipsis",
+      "Age": ".sex-age",
+      "Sex": ".sex-age",
+      "Online": ".StatusEnum",
+      "Grade": ".minPrice",
+      "Service": ".status.text-ellipsis"
+    },
+    "user_info_type": {
+      "Name": "category",
+      "Age": "uint8",
+      "Sex": "category",
+      "Online": "category",
+      "Grade": "category",
+      "Service": "category",
+      "Source": "category"
+    },
+    "gift_info_selector": ".swiper-slide:not(.swiper-slide-duplicate)",
+    "url_to_parser": "parse_url_pattern_1"
+  },
+  "http://oxxs5iqzqz.duopei-m.manongnet.cn": {
+    "url": "http://oxxs5iqzqz.duopei-m.manongnet.cn",
+    "name": "天空猫的树洞",
+    "page_finished_selector": ".van-list__finished-text",
+    "user_info_selector": {
+      "Name": ".name",
+      "Age": ".sex-age",
+      "Sex": ".sex-age",
+      "Online": ".status.text-ellipsis",
+      "GradeImg": ".grade img",
+      "Service": ".status.text-ellipsis"
+    },
+    "user_info_type": {
+      "Name": "category",
+      "Age": "uint8",
+      "Sex": "category",
+      "Online": "category",
+      "GradeImg": "category",
+      "Service": "category",
+      "Source": "category"
+    },
+    "gift_info_selector": ".swiper-slide:not(.swiper-slide-duplicate)",
+    "url_to_parser": "parse_url_pattern_2"
+  },
+  "http://8mukjha763.duopei-m.99c99c.com": {
+    "url": "http://8mukjha763.duopei-m.99c99c.com",
+    "name": "橘色灯罩",
+    "page_finished_selector": ".van-list__finished-text",
+    "user_info_selector": {
+      "Name": ".name.text-ellipsis",
+      "Age": ".sex-age",
+      "SexImg": ".sex-age img",
+      "Online": ".switch-name",
+      "Position": ".position.align-center",
+      "GradeImg": ".clerk-item__body > div:nth-child(2) > img",
+      "Service": ".switch-name"
+    },
+    "user_info_type": {
+      "Name": "category",
+      "Age": "uint8",
+      "SexImg": "category",
+      "Online": "category",
+      "Position": "category",
+      "GradeImg": "category",
+      "Service": "category",
+      "Source": "category"
+    },
+    "gift_info_selector": ".swiper-slide:not(.swiper-slide-duplicate)",
+    "url_to_parser": "parse_url_pattern_3"
+  },
+  "http://fhpkn3rf85.duopei-m.manongnet.cn": {
+    "url": "http://fhpkn3rf85.duopei-m.manongnet.cn",
+    "name": "清欢树洞",
+    "page_finished_selector": ".van-list__finished-text",
+    "user_info_selector": {
+      "Name": ".name",
+      "Age": ".sex-age",
+      "SexImg": ".sex-age img",
+      "Online": ".status.text-ellipsis",
+      "GradeImg": ".grade img",
+      "Service": ".status.text-ellipsis"
+    },
+    "user_info_type": {
+      "Name": "category",
+      "Age": "uint8",
+      "SexImg": "category",
+      "Online": "category",
+      "GradeImg": "category",
+      "Service": "category",
+      "Source": "category"
+    },
+    "gift_info_selector": ".swiper-slide:not(.swiper-slide-duplicate)",
+    "url_to_parser": "parse_url_pattern_4"
+  }
+}
