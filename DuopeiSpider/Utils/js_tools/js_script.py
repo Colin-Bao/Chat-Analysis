@@ -1,7 +1,9 @@
 import re
+import json
+from DuopeiSpider.Utils.setting import ROOT_PATH
 
 
-def test():
+def save_df():
     pass
     # type_config = {'Rank': 'uint16', 'Name': 'category', 'Sex': 'bool', 'Age': 'uint8',
     #                'Online': 'bool', 'Grade': 'uint8', 'Text': 'bool',
@@ -17,7 +19,7 @@ def test():
 
 
 # 定义一些解析函数，每个函数处理一种URL模式
-async def parse_url_pattern_1(gift_str: str) -> tuple[str,str,float]:
+async def parse_url_pattern_1(gift_str: str) -> tuple[str, str, float]:
     # 处理方式1 糖恋
     name, rest = gift_str.split('被打赏了', 1)
     # 分别考虑2种模式
@@ -30,7 +32,7 @@ async def parse_url_pattern_1(gift_str: str) -> tuple[str,str,float]:
     return name.strip(), gift.strip(), float(amount)
 
 
-async def parse_url_pattern_2(gift_str: str) -> tuple[str,str,float]:
+async def parse_url_pattern_2(gift_str: str) -> tuple[str, str, float]:
     # 处理方式2 天空猫
     name = gift_str.split('】')[0].replace('【', '')
     amount = gift_str.split('打赏')[1].replace('元', '').strip()
@@ -38,7 +40,7 @@ async def parse_url_pattern_2(gift_str: str) -> tuple[str,str,float]:
     return name.strip(), gift.strip(), float(amount)
 
 
-async def parse_url_pattern_3(gift_str: str) -> tuple[str,str,float]:
+async def parse_url_pattern_3(gift_str: str) -> tuple[str, str, float]:
     # 处理方式3 橘色灯罩
     name, rest = gift_str.split('打赏给')[1].split('】', 1)
     name = name.replace('【', '')
@@ -52,7 +54,7 @@ async def parse_url_pattern_3(gift_str: str) -> tuple[str,str,float]:
     return name.strip(), gift.strip(), float(amount)
 
 
-async def parse_url_pattern_4(gift_str: str) -> tuple[str,str,float]:
+async def parse_url_pattern_4(gift_str: str) -> tuple[str, str, float]:
     # 处理方式4 清欢
     name, rest = gift_str.split('收到了客人打赏', 1)
     name = re.search(r'【(.*?)】', name).group(1)
@@ -62,10 +64,9 @@ async def parse_url_pattern_4(gift_str: str) -> tuple[str,str,float]:
 
 
 #
-import json
-with open("/home/ubuntu/PycharmProjects/Chat-Analysis/DuopeiSpider/js_scripts/user_selector.json", "r") as file:
+with open(f"{ROOT_PATH}/DuopeiSpider/Utils/js_tools/user_selector.json", "r") as file:
     json_data = file.read()
-WEBSITE_DICT = json.loads(json_data)
+WEBSITE_DICT: dict = json.loads(json_data)
 
 # 'http://tj5uhmrpeq.duopei-m.featnet.com' ok
 # http://oxxs5iqzqz.duopei-m.manongnet.cn ok

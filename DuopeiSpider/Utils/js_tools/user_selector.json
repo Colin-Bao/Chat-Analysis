@@ -2,6 +2,7 @@
   "http://tj5uhmrpeq.duopei-m.featnet.com": {
     "url": "http://tj5uhmrpeq.duopei-m.featnet.com",
     "name": "糖恋树洞",
+    "user_card_selector": ".van-cell__value.van-cell__value--alone",
     "page_finished_selector": ".van-list__finished-text",
     "user_info_selector": {
       "Name": ".name.text-ellipsis",
@@ -26,6 +27,7 @@
   "http://oxxs5iqzqz.duopei-m.manongnet.cn": {
     "url": "http://oxxs5iqzqz.duopei-m.manongnet.cn",
     "name": "天空猫的树洞",
+    "user_card_selector": ".van-cell__value.van-cell__value--alone",
     "page_finished_selector": ".van-list__finished-text",
     "user_info_selector": {
       "Name": ".name",
@@ -50,6 +52,7 @@
   "http://8mukjha763.duopei-m.99c99c.com": {
     "url": "http://8mukjha763.duopei-m.99c99c.com",
     "name": "橘色灯罩",
+    "user_card_selector": ".van-cell__value.van-cell__value--alone",
     "page_finished_selector": ".van-list__finished-text",
     "user_info_selector": {
       "Name": ".name.text-ellipsis",
@@ -71,11 +74,13 @@
       "Source": "category"
     },
     "gift_info_selector": ".swiper-slide:not(.swiper-slide-duplicate)",
-    "url_to_parser": "parse_url_pattern_3"
+    "url_to_parser": "parse_url_pattern_3",
+    "banner_selector": "#app > div:nth-child(3) > div.page > div:nth-child(7) > div.van-dialog.van-dialog--default > div.van-dialog__content > div:nth-child(2) > div"
   },
   "http://fhpkn3rf85.duopei-m.manongnet.cn": {
     "url": "http://fhpkn3rf85.duopei-m.manongnet.cn",
     "name": "清欢树洞",
+    "user_card_selector": ".van-cell__value.van-cell__value--alone",
     "page_finished_selector": ".van-list__finished-text",
     "user_info_selector": {
       "Name": ".name",

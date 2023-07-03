@@ -1,9 +1,9 @@
 import playwright.async_api
-from playwright.async_api import async_playwright, Page, TimeoutError as PlaywrightTimeoutError, Error as PlaywrightError
-from DuopeiSpider.js_script import *
-from DuopeiSpider.data_handler import DataHandler
-from DuopeiSpider.logger import Logger
-from DuopeiSpider import setting as cf
+from playwright.async_api import async_playwright, Page, Locator, TimeoutError as PlaywrightTimeoutError, Error as PlaywrightError
+from DuopeiSpider.Utils.js_tools.js_script import *
+from DuopeiSpider.Utils.data_handler import DataHandler
+from DuopeiSpider.Utils.logger import Logger
+from DuopeiSpider.Utils import setting as cf
 
 import pandas as pd
 import time
@@ -15,10 +15,11 @@ class Scraper:
     数据爬取类
     """
 
-    def __init__(self, browser_type, data_handler: DataHandler = None, time_out: int = 20, ):
+    def __init__(self, browser_type: str = 'chromium', data_handler: DataHandler = None, time_out: int = 20, headless: bool = True):
         self.browser_type = browser_type
         self.browser: playwright.async_api.Browser = None
         self.playwright = None
+        self.headless = headless
 
         # 数据处理
         self.data_handler = data_handler
@@ -36,9 +37,9 @@ class Scraper:
     async def __aenter__(self):
         self.playwright = await async_playwright().__aenter__()
         match self.browser_type:
-            case "webkit": self.browser = await self.playwright.webkit.launch(headless=True)
+            case "webkit": self.browser = await self.playwright.webkit.launch(headless=self.headless)
             case "firefox": self.browser = await self.playwright.firefox.launch()
-            case "chromium": self.browser = await self.playwright.chromium.launch()
+            case "chromium": self.browser = await self.playwright.chromium.launch(headless=self.headless)
             case _: raise ValueError("Invalid browser type. Choose from 'webkit', 'firefox', or 'chromium'.")
         return self
 
@@ -63,6 +64,21 @@ class Scraper:
                 extra=extra
         ))
 
+    async def scroll_page(self, page: Page, url, locator_item: Locator):
+        scroll_st = time.time()
+        await self.log('页面开始滚动', {'func_name': 'run', 'url_name': url})
+        while True:
+            await page.locator(WEBSITE_DICT[url]['user_card_selector']).last.scroll_into_view_if_needed()
+            if time.time() - scroll_st > float(self.TIME_OUT):
+                raise PlaywrightTimeoutError(f'滚动超时：{self.TIME_OUT}')
+            if await locator_item.count():
+                break
+        await self.log('页面滚动完毕', {'func_name': 'run', 'url_name': url})
+
+    async def block_img(self, page: Page, url):
+        await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
+        await self.log('已关闭图像', {'func_name': 'block_img', 'url_name': url})
+
     async def parse_gift(self, page: Page, parse_time, url) -> pd.DataFrame:
         """
         礼物打赏解析
@@ -81,7 +97,7 @@ class Scraper:
                                columns=['Name', 'Content', 'Num'])
         df_gift['Date'] = parse_time
         df_gift['Source'] = url
-        df_gift = df_gift.astype(dtype={'Name': 'str', 'Content': 'str', 'Num': 'float','Source':'str'})
+        df_gift = df_gift.astype(dtype={'Name': 'str', 'Content': 'str', 'Num': 'float', 'Source': 'str'})
 
         # 返回
         await self.log('礼物数据解析成功', {'func_name': 'parse_gift', 'url_name': url})
@@ -93,7 +109,31 @@ class Scraper:
         :return:
         """
 
-        # 提取用户面板数据
+        def func_version() -> [{}, ...]:
+            # 从DOM中解析元素
+            attribute_methods = {'Sex': 'style', 'GradeImg': 'src', 'SexImg': 'src'}
+            user_list = []
+            for element_user_card in await page.locator(WEBSITE_DICT[url]['user_card_selector']).all():
+                # 在元素中定位子元素
+                user_card_dict = {}
+                for attr, selector in list(WEBSITE_DICT[url]['user_info_selector'].items()):
+                    sub_element = element_user_card.locator(selector)
+
+                    # 无数据跳出
+                    if not await sub_element.count(): break
+
+                    # 解析元素
+                    if attr in attribute_methods: text_content = await sub_element.get_attribute(attribute_methods[attr])
+                    else: text_content = (await sub_element.text_content()).strip()
+
+                    # 增加属性
+                    user_card_dict[attr] = text_content
+
+                # 添加子元素
+                if len(user_card_dict.keys()) == len(WEBSITE_DICT[url]['user_info_selector']): user_list.append(user_card_dict)
+            return user_list
+
+        # 增加和转换其他列
         df_user = pd.DataFrame(await page.evaluate(JS_USER_INFO, WEBSITE_DICT[url]['user_info_selector']))
         assert len(df_user.columns) == len(WEBSITE_DICT[url]['user_info_selector'])
         df_user['Age'] = df_user['Age'].replace('', 0)
@@ -115,21 +155,15 @@ class Scraper:
         # 0.创建页面
         page = await self.browser.new_page()
         page.set_default_timeout(self.TIME_OUT * 1000)  # 默认超时
-        # 启用请求拦截
-        await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
+        await self.block_img(page, url)
+
         try:
             # 1.访问页面
             await page.goto(url)
 
             # 2.滚动页面
-            scroll_st = time.time()
-            await self.log('页面开始滚动', {'func_name': 'run', 'url_name': url})
-            while not await page.locator(WEBSITE_DICT[url]['page_finished_selector']).count():
-                await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-                if time.time() - scroll_st > float(self.TIME_OUT):
-                    raise PlaywrightTimeoutError(f'滚动超时：{self.TIME_OUT}')
+            await self.scroll_page(page, url, page.locator(WEBSITE_DICT[url]['page_finished_selector']))
             scroll_et = datetime.datetime.now()
-            await self.log('页面滚动完毕', {'func_name': 'run', 'url_name': url})
 
             # 3.解析页面
             # -----------------绑定处理类 -----------------#
