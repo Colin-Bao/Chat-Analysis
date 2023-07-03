@@ -64,16 +64,22 @@ class Scraper:
                 extra=extra
         ))
 
+    async def click_banner(self, page: Page, url):
+        banner_selector = WEBSITE_DICT[url].get('banner_selector', None)
+        if banner_selector:
+            await page.locator(banner_selector).click()
+        await self.log('点击公告栏完成', {'func_name': 'click_banner', 'url_name': url})
+
     async def scroll_page(self, page: Page, url, locator_item: Locator):
         scroll_st = time.time()
-        await self.log('页面开始滚动', {'func_name': 'run', 'url_name': url})
+        await self.log('页面开始滚动', {'func_name': 'scroll_page', 'url_name': url})
         while True:
             await page.locator(WEBSITE_DICT[url]['user_card_selector']).last.scroll_into_view_if_needed()
             if time.time() - scroll_st > float(self.TIME_OUT):
                 raise PlaywrightTimeoutError(f'滚动超时：{self.TIME_OUT}')
             if await locator_item.count():
                 break
-        await self.log('页面滚动完毕', {'func_name': 'run', 'url_name': url})
+        await self.log('页面滚动完毕', {'func_name': 'scroll_page', 'url_name': url})
 
     async def block_img(self, page: Page, url):
         await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
@@ -109,7 +115,7 @@ class Scraper:
         :return:
         """
 
-        def func_version() -> [{}, ...]:
+        async def func_version() -> [{}, ...]:
             # 从DOM中解析元素
             attribute_methods = {'Sex': 'style', 'GradeImg': 'src', 'SexImg': 'src'}
             user_list = []
