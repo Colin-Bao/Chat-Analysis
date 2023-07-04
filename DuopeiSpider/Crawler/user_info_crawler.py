@@ -32,13 +32,14 @@ class UserInfoScraper(Scraper):
         os.makedirs(audio_dir, exist_ok=True)
 
     # noinspection PyMethodMayBeStatic
-    async def get_user_url(self, url) -> list[str, ...] | None:
+    async def get_user_url(self, url) -> list[(str, int), ...] | None:
         # 读取用户URL列表
         user_url_path = f"{cf.DS_PATH}/{WEBSITE_DICT[url]['name']}/user_info/user_url.csv"
         if os.path.exists(user_url_path):
-            user_urls = pd.read_csv(user_url_path)['User_url'].tolist()
+            df = pd.read_csv(user_url_path)
+            user_list: [(str, int), ...] = list(zip(df['User_url'].tolist(), df['Rank'].tolist(), ))
         else: return None
-        return user_urls
+        return user_list
 
     async def run(self, url):
         # 创建目录
@@ -50,43 +51,52 @@ class UserInfoScraper(Scraper):
 
         # 开始爬取
         user_info_list: [{}] = []
-        for user_url in tqdm(user_urls):
-            # 导航到需要爬取的网站
-            await page.goto(user_url)
-            await page.wait_for_load_state('networkidle')
+        for user_url, user_rank in tqdm(user_urls):
+            try:
+                while True:
+                    # 导航到需要爬取的网站
+                    await page.goto(user_url)
+                    await page.wait_for_load_state('networkidle')
 
-            # 定义存储信息的字典
-            user_info_dict = {}
+                    # 定义存储信息的字典
+                    user_info_dict = {}
 
-            # 解析音频
-            await page.locator(WEBSITE_DICT[url]['dialog_button_selector']).click()
-            async with page.expect_response(lambda response: 'mp3' in response.url) as response_info:
-                await page.locator(WEBSITE_DICT[url]['clerk_audio_selector']).click()
-            user_info_dict['audio_url'] = (await response_info.value).url
+                    # 解析所有的照片墙
+                    for k, v in enumerate(await page.locator(WEBSITE_DICT[url]['img_wall_selector']).all()):
+                        user_info_dict[f'img_{k}'] = await v.get_attribute('src')
 
-            # 解析个人资料
-            user_info: list = await page.locator(WEBSITE_DICT[url]['clerk_info_selector']).all_inner_texts()
+                    # 解析音频
+                    await page.locator(WEBSITE_DICT[url]['dialog_button_selector']).click()  # 移除通知栏
+                    async with page.expect_response(lambda response: 'mp3' in response.url) as response_info:
+                        await page.locator(WEBSITE_DICT[url]['clerk_audio_selector']).click()
+                    user_info_dict['audio_url'] = (await response_info.value).url
 
-            # 解析礼物墙
-            user_gift_wall: [str, ...] = await page.locator('div.row-item').all_inner_texts()
+                    # 解析个人资料
+                    user_info: [] = await page.locator(WEBSITE_DICT[url]['clerk_info_selector']).all_inner_texts()
 
-            # 生成信息字典
-            for k, v in enumerate(user_info[0].split('\n')):
-                user_info_dict[f'info_{k}'] = v
-            for k, v in enumerate(user_gift_wall):
-                user_info_dict[f'gift_{k}'] = v
+                    # 解析礼物墙
+                    user_gift_wall: [str, ...] = await page.locator('div.row-item').all_inner_texts()
 
-            # 额外元数据
-            user_info_dict['user_url'] = user_url
-            user_info_dict['user_source'] = url
-            user_info_dict['source_name'] = WEBSITE_DICT[url]['name']
-            user_info_dict['update_time'] = datetime.datetime.now()
-            user_info_dict['img_dir'] = f"{cf.DS_PATH}/{WEBSITE_DICT[url]['name']}/user_info/imgs/"
-            user_info_dict['audio_dir'] = f"{cf.DS_PATH}/{WEBSITE_DICT[url]['name']}/user_info/audios/"
+                    # 生成信息字典
+                    for k, v in enumerate(user_info[0].split('\n')):
+                        user_info_dict[f'info_{k}'] = v
+                    for k, v in enumerate(user_gift_wall):
+                        user_info_dict[f'gift_{k}'] = v
 
-            # 增加到列表
-            user_info_list.append(user_info_dict)
+                    # 额外元数据
+                    user_info_dict['user_rank'] = user_rank
+                    user_info_dict['user_url'] = user_url
+                    user_info_dict['user_source'] = url
+                    user_info_dict['source_name'] = WEBSITE_DICT[url]['name']
+                    user_info_dict['update_time'] = datetime.datetime.now()
 
+                    # 增加到列表
+                    user_info_list.append(user_info_dict)
+                    break
+            except (PlaywrightTimeoutError, PlaywrightError, Exception):
+                continue
+            # 测试点
+            # break
         await page.close()
         pd.DataFrame(user_info_list).to_csv(f"{cf.DS_PATH}/{WEBSITE_DICT[url]['name']}/user_info/user_card.csv", escapechar='\\',
-                                            index=True)
+                                            index=False)

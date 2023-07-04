@@ -26,7 +26,8 @@
     "dialog_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--mini.van-button--round",
     "clerk_info_selector": "div.content",
-    "gift_wall_selector": ".row-item"
+    "gift_wall_selector": ".row-item",
+    "img_wall_selector": "div.photo-box img"
   },
   "http://oxxs5iqzqz.duopei-m.manongnet.cn": {
     "url": "http://oxxs5iqzqz.duopei-m.manongnet.cn",
@@ -56,7 +57,8 @@
     "dialog_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--small.van-button--round",
     "clerk_info_selector": "div.clerk-info",
-    "gift_wall_selector": ".row-item"
+    "gift_wall_selector": ".row-item",
+    "img_wall_selector": "div.top-info img"
   },
   "http://8mukjha763.duopei-m.99c99c.com": {
     "url": "http://8mukjha763.duopei-m.99c99c.com",
@@ -90,7 +92,8 @@
     "dialog_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--small.van-button--round",
     "clerk_info_selector": "div.clerk-info",
-    "gift_wall_selector": ".row-item"
+    "gift_wall_selector": ".row-item",
+    "img_wall_selector": "div.top-info img"
   },
   "http://fhpkn3rf85.duopei-m.manongnet.cn": {
     "url": "http://fhpkn3rf85.duopei-m.manongnet.cn",
@@ -120,6 +123,7 @@
     "dialog_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--small.van-button--round",
     "clerk_info_selector": "div.clerk-info",
-    "gift_wall_selector": ".row-item"
+    "gift_wall_selector": ".row-item",
+    "img_wall_selector": "div.top-info img"
   }
 }

@@ -60,22 +60,14 @@ class StaticScraper(Scraper):
                     if 'detail' in page.url:
                         url_dict['User_url'] = page.url
                         url_dict['Source'] = url
+                        url_dict['Rank'] = i
                         url_list.append(url_dict)
                         # 回到原始页面
                         await page.go_back()
                         break
-                except PlaywrightTimeoutError as e:
-                    print(e)
-                    await page.screenshot(path=f'{ROOT_PATH}/DataSets/screenshots/e_{i}.png')
-                    continue
-                except PlaywrightError as e:
-                    await page.screenshot(path=f'{ROOT_PATH}/DataSets/screenshots/e_{i}.png')
-                    print(e)
-                    continue
-                except Exception as e:
-                    print(e)
+                except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
                     await page.screenshot(path=f'{ROOT_PATH}/DataSets/screenshots/e_{i}.png')
                     continue
 
         await page.close()
-        pd.DataFrame(url_list).to_csv(save_path)
+        pd.DataFrame(url_list).to_csv(save_path, index=False)
