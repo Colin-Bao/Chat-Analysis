@@ -17,7 +17,7 @@ class Scraper:
 
     def __init__(self, browser_type: str = 'chromium', data_handler: DataHandler = None, time_out: int = 20, headless: bool = True):
         self.browser_type = browser_type
-        self.browser: playwright.async_api.Browser = None
+        self.browser: playwright.async_api.Browser = None  # noqa
         self.playwright = None
         self.headless = headless
 
@@ -70,6 +70,7 @@ class Scraper:
             await page.locator(selector).click()
         await self.log('点击公告栏完成', {'func_name': 'click_banner', 'url_name': url})
 
+    # noinspection PyMethodMayBeStatic
     async def remove_dialog(self, page: Page, url):
         selector: str = WEBSITE_DICT[url].get('dialog_selector', None)
         if selector:
@@ -122,6 +123,7 @@ class Scraper:
         :return:
         """
 
+        # noinspection PyUnusedLocal
         async def func_version() -> [{}, ...]:
             # 从DOM中解析元素
             attribute_methods = {'Sex': 'style', 'GradeImg': 'src', 'SexImg': 'src'}

@@ -46,7 +46,6 @@ class DataHandler:
         os.makedirs(self.snapshot_dir, exist_ok=True)
         os.makedirs(self.user_info_dir, exist_ok=True)
 
-
     async def get_snapshot(self, df_parse: pd.DataFrame, table_name, table_type) -> pd.DataFrame:
         """
         读取和创建文件，包括user和gift的缓存文件，和状态记录表缓存文件。例如(df,user,['bk','add'])
