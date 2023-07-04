@@ -65,10 +65,17 @@ class Scraper:
         ))
 
     async def click_banner(self, page: Page, url):
-        banner_selector = WEBSITE_DICT[url].get('banner_selector', None)
-        if banner_selector:
-            await page.locator(banner_selector).click()
+        selector = WEBSITE_DICT[url].get('banner_selector', None)
+        if selector:
+            await page.locator(selector).click()
         await self.log('点击公告栏完成', {'func_name': 'click_banner', 'url_name': url})
+
+    async def remove_dialog(self, page: Page, url):
+        selector: str = WEBSITE_DICT[url].get('dialog_selector', None)
+        if selector:
+            await page.evaluate('''
+            (selector) => {const element = document.querySelector(selector);
+            if (element) {element.parentNode.removeChild(element);}}''', selector)
 
     async def scroll_page(self, page: Page, url, locator_item: Locator):
         scroll_st = time.time()
