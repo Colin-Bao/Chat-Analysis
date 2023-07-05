@@ -36,7 +36,7 @@ def parse_csv_2(df: pd.DataFrame) -> pd.DataFrame:
 
     # 修改列名
     df = df.rename(
-            columns={'info_0': 'user_grade', 'info_2': 'user_name', 'info_6': 'user_tag',
+            columns={'info_2': 'user_name', 'info_6': 'user_tag',
                      'info_7': 'user_profile', 'audio_url': 'user_audio_url'})
 
     return df
@@ -75,7 +75,7 @@ def parse_csv_4(df: pd.DataFrame) -> pd.DataFrame:
 
     # 修改列名
     df = df.rename(
-            columns={'info_0': 'user_grade', 'info_2': 'user_name', 'info_6': 'user_tag',
+            columns={'info_2': 'user_name', 'info_6': 'user_tag',
                      'info_7': 'user_profile', 'audio_url': 'user_audio_url'})
 
     return df
@@ -108,8 +108,12 @@ def run():
         df_pharse = parse_csv_gift(function_mapping.get(WEBSITE_DICT[web]['name'], None)(df_web_csv)).rename(columns={'img_0': 'user_img'})
         df_pharse_use = df_pharse[
             ['user_rank', 'user_name', 'user_img', 'user_url', 'user_position', 'user_tag', 'user_profile', 'user_status', 'user_service',
-             'user_audio_url', 'source_name', 'update_time']]
-        df_merge = pd.concat([df_merge, df_pharse_use], axis=0, ignore_index=False)
+             'user_gift', 'user_grade', 'user_audio_url', 'source_name', 'update_time']]
+        df_merge = pd.concat([df_merge, df_pharse_use], ignore_index=True)
 
     # 整合
     df_merge.to_csv(f"{DS_PATH}/dbs/user_card_all.csv", index=False)
+
+
+if __name__ == '__main__':
+    run()
