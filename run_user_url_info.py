@@ -5,7 +5,7 @@ import asyncio
 from DuopeiSpider.Crawler.user_url_crawler import StaticScraper
 from DuopeiSpider.Crawler.user_info_crawler import UserInfoScraper
 from DuopeiSpider.Utils.js_tools.js_script import WEBSITE_DICT
-
+from DuopeiSpider.Utils.csv_to_df import run as run_csv_to_df
 
 async def main():
     # 异步运行
@@ -21,3 +21,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+    run_csv_to_df()
