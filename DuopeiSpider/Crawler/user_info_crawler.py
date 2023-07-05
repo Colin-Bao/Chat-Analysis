@@ -39,6 +39,7 @@ class UserInfoScraper(Scraper):
             df = pd.read_csv(user_url_path)
             user_list: [(str, int), ...] = list(zip(df['User_url'].tolist(), df['Rank'].tolist(), ))
         else: return None
+
         return user_list
 
     async def run(self, url):
