@@ -91,7 +91,7 @@ class Scraper:
 
     async def block_img(self, page: Page, url):
         await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
-        await self.log('已关闭图像', {'func_name': 'block_img', 'url_name': url})
+        # await self.log('已关闭图像', {'func_name': 'block_img', 'url_name': url})
 
     async def parse_gift(self, page: Page, parse_time, url) -> pd.DataFrame:
         """
