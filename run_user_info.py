@@ -1,7 +1,8 @@
 import sys
+import asyncio
 
 sys.path.append('/home/ubuntu/PycharmProjects/Chat-Analysis')
-import asyncio
+
 from DuopeiSpider.Crawler.user_info_crawler import UserInfoScraper
 from DuopeiSpider.Utils.js_tools.js_script import WEBSITE_DICT
 
