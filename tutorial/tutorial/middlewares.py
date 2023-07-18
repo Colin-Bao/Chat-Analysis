@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import pandas as pd
 from datetime import datetime
 
 import json
@@ -116,15 +117,91 @@ class PlaywrightDownloaderMiddleware:
 
         # await page.wait_for_timeout(1000)
 
-    async def get_user_urls(self, request, page: Page) -> {}:
+    async def parse_clerk(self, request, page: Page) -> [{}, ...]:
+        """
+        店员信息解析
+        :return:
+        """
+
+        # 提取用户信息JS代码
+        JS_USER_INFO = '''O => {
+                                const elements = document.querySelectorAll(O.userSelector);
+                                const data = [];
+                                let index = 0;
+                                
+                                // Add the current time
+                                const now = new Date();
+                                const nowFormatted = now.toISOString().slice(0, 19).replace('T', ' ');
+                                
+                                for (const element of elements) {
+                                    const row = {};
+                                    row['rank'] = index;
+                                    index=index+1
+                                    row['time'] = nowFormatted;
+                                    for (const [attr, classname] of Object.entries(O.itemDict)) {
+                                        const subElement = element.querySelector(classname);
+                                        if (subElement) {
+                                            let textContent;
+                                            if (attr === 'Sex') {
+                                                textContent = subElement.getAttribute("style").trim();
+                                            } 
+                                            else if (attr === 'GradeImg') {
+                                                textContent = subElement.getAttribute("src").trim();
+                                            }
+                                            else if (attr === 'SexImg') {
+                                                textContent = subElement.getAttribute("src").trim();
+                                            }
+                                            else {
+                                                textContent = subElement.textContent.trim();
+                                            }
+                                            row[attr] = textContent;
+                                        }
+                                    }
+                                    
+                                    if (Object.keys(O.itemDict).every(key => key in row)) {
+                                        data.push(row);
+                                    }
+                                }
+                                return data;
+                            }
+                        '''
+
+        # 定位器字典
+        el_dict = request.meta.get('locator_dict')
+        # logging.getLogger('定位器字典').info(el_dict)
+
+        # 提取
+        user_dict_list = await page.evaluate(JS_USER_INFO,
+                                             {"userSelector": el_dict['user_card_selector'],
+                                              'itemDict': el_dict['user_info_selector']})
+        # logging.getLogger('用户信息').info(user_dict_list)
+
+        return user_dict_list
+
+    async def get_user_info(self, request, page: Page) -> {}:
+        # 定位器字典
         el_dict = request.meta.get('locator_dict')
 
-        # 点击告知提示框
-        # await page.wait_for_load_state('networkidle')
-        # await self.click_button_by_selector(page, el_dict.get('dialog_button_selector', None))
-
-        # 2.滚动页面
+        # 滚动页面
         await self.scroll_page(page.locator(el_dict['user_card_selector']), page.locator(el_dict['page_finished_selector']))
+
+        # 常规爬虫
+        user_dict_list = await self.parse_clerk(request, page)
+        # logging.getLogger('常规爬虫').info(user_dict_list)
+
+        # 按需调用url爬虫
+        if request.meta.get('use_url_crawl', False):
+            url_dict_list = await self.get_user_urls(request, page)
+            # logging.getLogger('url爬虫').info(len(url_dict_list))
+            # logging.getLogger('url爬虫').info(len(user_dict_list))
+
+            return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}
+        else:
+            return {'res': user_dict_list}
+
+    async def get_user_urls(self, request, page: Page) -> [{}, ...]:
+        # 定位器字典
+        el_dict = request.meta.get('locator_dict')
 
         # 定位到具有跳转链接的元素
         click_locators = page.locator(el_dict['user_card_selector'])
@@ -138,13 +215,20 @@ class PlaywrightDownloaderMiddleware:
             user_dict = {}
             # 获取单个元素
             element = click_locators.nth(i)
+            # logging.getLogger('元素数量').info(element)
 
             try:
                 # 将元素滚动到视野中
                 await element.scroll_into_view_if_needed()
+                await self.click_button_by_selector(page, el_dict.get('login_button_selector', None))  # 点击登录提示框
+
+                # 解析音频
+                audio_locator = element.locator(el_dict['user_audio_selector'])
+                async with page.expect_response(lambda response: 'mp3' in response.url) as response_info:
+                    await audio_locator.click()
 
                 # 模拟点击元素
-                await self.click_button_by_selector(page, el_dict.get('login_button_selector', None))  # 点击登录提示框
+                await element.highlight()
                 await element.click()
                 await page.wait_for_url('**/detail/**')  # 等待页面跳转
 
@@ -154,6 +238,7 @@ class PlaywrightDownloaderMiddleware:
                     user_dict['website'] = request.url
                     user_dict['rank'] = i
                     user_dict['crawl_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    user_dict['audio_url'] = (await response_info.value).url
                     user_dict_list.append(user_dict)
                 else:
                     pass
@@ -167,9 +252,7 @@ class PlaywrightDownloaderMiddleware:
                 if 'detail' in page.url:
                     await page.go_back()
 
-            if i >= 5: break
-
-        return {'res': user_dict_list}
+        return user_dict_list
 
     async def process_request(self, request, spider):
         # Called for each request that goes through the downloader

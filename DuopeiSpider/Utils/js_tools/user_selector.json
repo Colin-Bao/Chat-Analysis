@@ -26,6 +26,7 @@
     "url_to_parser": "parse_url_pattern_1",
     "dialog_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
     "login_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
+    "user_audio_selector": "button.audio.van-button.van-button--default.van-button--mini.van-button--round",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--mini.van-button--round",
     "clerk_info_selector": "div.content",
     "gift_wall_selector": ".row-item",
@@ -59,6 +60,7 @@
     "dialog_selector": ".van-dialog",
     "dialog_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
     "login_button_selector": "button.van-button.van-button--default.van-button--large.van-dialog__cancel",
+    "user_audio_selector": "button.audio.van-button.van-button--default.van-button--mini.van-button--round",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--small.van-button--round",
     "clerk_info_selector": "div.clerk-info",
     "gift_wall_selector": ".row-item",
@@ -96,12 +98,13 @@
     "dialog_selector": ".van-dialog",
     "dialog_button_selector": "#app > div:nth-child(3) > div.page > div:nth-child(7) > div.van-dialog.van-dialog--default > div.van-dialog__content > div:nth-child(2) > div",
     "login_button_selector": "#app > div:nth-child(3) > div.page > div:nth-child(7) > div.van-dialog.van-dialog--default > div.van-dialog__content > div:nth-child(2) > div",
+    "user_audio_selector": "div.audio.flex.align-center",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--small.van-button--round",
     "clerk_info_selector": "div.clerk-info",
     "gift_wall_selector": ".row-item",
     "img_wall_selector": "div.top-info img"
   },
-  "http://fhpkn3rf85.duopei-m.manongnet.cn": {
+  "http://9uybjxsbfh.duopei-m.manongnet.cn": {
     "USE": false,
     "url": "http://9uybjxsbfh.duopei-m.manongnet.cn",
     "name": "清欢树洞",
@@ -127,6 +130,7 @@
     "gift_info_selector": ".swiper-slide:not(.swiper-slide-duplicate)",
     "url_to_parser": "parse_url_pattern_4",
     "dialog_selector": ".van-dialog",
+    "user_audio_selector": "button.audio.van-button.van-button--default.van-button--mini.van-button--round",
     "clerk_audio_selector": "button.audio.van-button.van-button--default.van-button--small.van-button--round",
     "clerk_info_selector": "div.clerk-info",
     "gift_wall_selector": ".row-item",
