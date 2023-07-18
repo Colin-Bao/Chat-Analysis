@@ -1,10 +1,16 @@
 import json
 
 import logging
-
 from pathlib import Path
-from scrapy import Spider
+from scrapy import Spider, Item, Field
 from scrapy.http import Response, Request
+
+
+class BaseUserItem(Item):
+    """
+    基础用户信息：在首页能获取到的一级信息
+    """
+    website, homepage, crawl_date = Field(), Field(), Field()
 
 
 class ScrollSpider(Spider):
@@ -18,13 +24,13 @@ class ScrollSpider(Spider):
             "CONCURRENT_REQUESTS": 5,
             "LOG_LEVEL": "INFO",
             "FEEDS": {
-                    '%(name)s-output.jsonlines': {'format': 'jsonlines', 'overwrite': False},
+                    'data/%(name)s.jsonlines': {'format': 'jsonlines', 'overwrite': False},
             }
 
     }
     start_urls = ['http://tj5uhmrpeq.duopei-m.featnet.com', 'http://oxxs5iqzqz.duopei-m.manongnet.cn',
                   'http://8mukjha763.duopei-m.99c99c.com']
-    start_urls = ['http://tj5uhmrpeq.duopei-m.featnet.com']
+    # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
 
     def start_requests(self):
         with open(
@@ -35,15 +41,18 @@ class ScrollSpider(Spider):
         for url in self.start_urls:
             yield Request(url=url, callback=self.parse,
                           meta={'PlaywrightDownloaderMiddleware': True,
-                                'Playwright_Headless': True,
+                                'Playwright_Headless': False,
                                 'Playwright_Method': 'get_user_urls',
                                 'locator_dict': json.loads(json_data)[url],
                                 })
 
     def parse(self, response):
-        logging.getLogger('sasaas').info('saaaaaaaaaaaaaaa')
-        return {"url": response.url, 'body': json.loads(response.text)}
+        for user in json.loads(response.body)['res']:
+            item = BaseUserItem()
+            for i in list(item.fields.keys()):
+                item[i] = user[i]
+            yield item
 
-    # def handle_error(self, failure):
-    #     # 处理请求错误
-    #     self.log(failure.request.url + ' - ' + repr(failure))
+    def handle_error(self, failure):
+        # 处理请求错误
+        self.log(failure.request.url + ' - ' + repr(failure))

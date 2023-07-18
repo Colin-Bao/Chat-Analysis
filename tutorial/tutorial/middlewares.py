@@ -93,11 +93,35 @@ class PlaywrightDownloaderMiddleware:
             if await finished_item_locator.count():
                 break
 
+    async def click_button_by_selector(self, page, button_selector: str):
+        await page.evaluate('''
+        var elements = document.querySelectorAll(".van-overlay, .van-dialog");
+        if(elements.length > 0) {
+            elements.forEach((element) => {
+                element.parentNode.removeChild(element);
+            });
+        }
+        ''')
+        # if button_selector:
+        #     button_locator = page.locator(button_selector)
+        #     if await button_locator.count():
+        #         text = await button_locator.all_inner_texts()
+        #         logging.getLogger('').info(text)
+        #         await button_locator.highlight()
+        #         await page.evaluate('''
+        #                     (selector) => {const element = document.querySelector(selector);
+        #                     if (element) {element.parentNode.removeChild(element);}}''', button_selector)
+
+        # await button_locator.click(timeout=1000)
+
+        # await page.wait_for_timeout(1000)
+
     async def get_user_urls(self, request, page: Page) -> {}:
         el_dict = request.meta.get('locator_dict')
 
-        # 点击提示框
-        # await page.click(el_dict['dialog_button_selector']) if el_dict.get('dialog_button_selector', None) else None
+        # 点击告知提示框
+        # await page.wait_for_load_state('networkidle')
+        # await self.click_button_by_selector(page, el_dict.get('dialog_button_selector', None))
 
         # 2.滚动页面
         await self.scroll_page(page.locator(el_dict['user_card_selector']), page.locator(el_dict['page_finished_selector']))
@@ -120,27 +144,30 @@ class PlaywrightDownloaderMiddleware:
                 await element.scroll_into_view_if_needed()
 
                 # 模拟点击元素
-                # await self.remove_dialog(page, url)  # 移除通知框
+                await self.click_button_by_selector(page, el_dict.get('login_button_selector', None))  # 点击登录提示框
                 await element.click()
-                await page.wait_for_load_state('networkidle')  # 等待点击事件
+                await page.wait_for_url('**/detail/**')  # 等待页面跳转
 
                 # 获取并打印新页面的URL
                 if 'detail' in page.url:
-                    user_dict['user_url'] = page.url
-                    user_dict['source'] = request.url
+                    user_dict['homepage'] = page.url
+                    user_dict['website'] = request.url
                     user_dict['rank'] = i
                     user_dict['crawl_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     user_dict_list.append(user_dict)
-                    # 回到原始页面
-                    await page.go_back()
-
                 else:
                     pass
+
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
-                await page.screenshot(path=f'{i}.png')
+                # await page.screenshot(path=f'{i}.png')
                 continue
 
-            # if i >= 5: break
+            finally:
+                # 回到原始页面
+                if 'detail' in page.url:
+                    await page.go_back()
+
+            if i >= 5: break
 
         return {'res': user_dict_list}
 
@@ -195,4 +222,4 @@ class PlaywrightDownloaderMiddleware:
         pass
 
     def spider_opened(self, spider):
-        spider.logger.info("中间件 Spider opened: %s" % spider.name)
+        spider.logger.info(f"{spider.name} Spider opened Use {__class__.__name__}")

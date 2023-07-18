@@ -9,6 +9,7 @@
 DOWNLOADER_MIDDLEWARES= {
         'tutorial.middlewares.PlaywrightDownloaderMiddleware': 543
 }
+ITEM_PIPELINES = {'tutorial.pipelines.UserPipeline': 300}
 
 # DOWNLOAD_HANDLERS = {
 #         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",

@@ -6,8 +6,18 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from scrapy.exceptions import DropItem
+import logging
 
 
-class TutorialPipeline:
+class UserPipeline:
     def process_item(self, item, spider):
+        # 数据清洗
+        # logging.getLogger('UserPipeline').info(item)
+        # item['username'] = item['username'].strip()
+        # item['email'] = item['email'].strip()
+
+        # 数据验证
+
+        # 保存数据到数据库或其他地方
         return item
