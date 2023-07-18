@@ -5,7 +5,7 @@
       <excludePattern pattern="*/snapshots" />
       <excludePattern pattern="*/user_daily_data" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="PlaySpider" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Chat-Web" />
   </component>

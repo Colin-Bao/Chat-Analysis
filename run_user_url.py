@@ -9,7 +9,7 @@ from DuopeiSpider.Utils.js_tools.js_script import WEBSITE_DICT
 async def main():
     # 异步运行
     async with StaticScraper(30, True) as scraper:
-        tasks = [scraper.run(website) for website, _ in WEBSITE_DICT.items()]
+        tasks = [scraper.run(website) for website, _ in WEBSITE_DICT.items() if WEBSITE_DICT[website]['USE']]
         await asyncio.gather(*tasks)
 
 

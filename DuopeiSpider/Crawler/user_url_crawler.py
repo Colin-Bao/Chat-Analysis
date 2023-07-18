@@ -1,3 +1,7 @@
+"""
+根据点击后的url跳转，获取用户url列表
+"""
+
 import pandas as pd
 from tqdm import tqdm
 import os

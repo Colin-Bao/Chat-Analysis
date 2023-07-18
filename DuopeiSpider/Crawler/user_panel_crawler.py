@@ -87,7 +87,6 @@ class Scraper:
                 raise PlaywrightTimeoutError(f'滚动超时：{self.TIME_OUT}')
             if await locator_item.count():
                 break
-        # await self.log('页面滚动完毕', {'func_name': 'scroll_page', 'url_name': url})
 
     async def block_img(self, page: Page, url):
         await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
@@ -175,6 +174,7 @@ class Scraper:
         try:
             # 1.访问页面
             await page.goto(url)
+
 
             # 2.滚动页面
             await self.scroll_page(page, url, page.locator(WEBSITE_DICT[url]['page_finished_selector']))
