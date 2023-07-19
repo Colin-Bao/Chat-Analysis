@@ -128,7 +128,6 @@ class PWDownloaderMiddleware:
         # temp_t = await temp.inner_html()
         # position = temp.locator('.position')
         # print(await position.text_content())
-        logging.getLogger('parse_clerk').info(f'店员信息解析：{request.url}')
 
         # 提取用户信息JS代码
         JS_USER_INFO = '''
@@ -146,6 +145,7 @@ class PWDownloaderMiddleware:
                 row['rank_2'] = index;
                 index = index + 1
                 row['crawl_date_2'] = nowFormatted;
+                row['company'] = O.company;
                 for (const [attr, classname] of Object.entries(O.itemDict)) {
                     const subElement = element.querySelector(classname);
                     if (subElement) {
@@ -182,13 +182,13 @@ class PWDownloaderMiddleware:
 
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
-        # logging.getLogger('定位器字典').info(el_dict)
+        logging.getLogger('parse_clerk').info(f"店员信息解析：{request.url}, {el_dict['company']}")
 
         # JS提取
         user_dict_list = await page.evaluate(JS_USER_INFO,
                                              {"userSelector": el_dict['user_card_selector'],
-                                              'itemDict': el_dict['user_info_selector']})
-        # logging.getLogger('结果').info(user_dict_list)
+                                              'itemDict': el_dict['user_info_selector'],
+                                              'company': el_dict['company']})  # 增加需要的信息
         return user_dict_list
 
     async def get_user_info(self, request, page: Page) -> {}:

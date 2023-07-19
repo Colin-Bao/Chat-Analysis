@@ -31,4 +31,4 @@ class UserItem(Item):
     Tag2 = Field()
     AvatarImg = Field()
     Profile = Field()
-
+    company = Field()

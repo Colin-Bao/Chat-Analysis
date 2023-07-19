@@ -1,7 +1,7 @@
 {
   "http://tj5uhmrpeq.duopei-m.featnet.com": {
     "url": "http://tj5uhmrpeq.duopei-m.featnet.com",
-    "name": "糖恋树洞",
+    "company": "糖恋树洞",
     "USE": true,
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog",
@@ -37,7 +37,7 @@
   "http://oxxs5iqzqz.duopei-m.manongnet.cn": {
     "USE": true,
     "url": "http://oxxs5iqzqz.duopei-m.manongnet.cn",
-    "name": "天空猫的树洞",
+    "company": "天空猫的树洞",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -73,7 +73,7 @@
   "http://8mukjha763.duopei-m.99c99c.com": {
     "USE": true,
     "url": "http://8mukjha763.duopei-m.99c99c.com",
-    "name": "橘色灯罩",
+    "company": "橘色灯罩",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -113,7 +113,7 @@
   "http://9uybjxsbfh.duopei-m.manongnet.cn": {
     "USE": false,
     "url": "http://9uybjxsbfh.duopei-m.manongnet.cn",
-    "name": "清欢树洞",
+    "company": "清欢树洞",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -145,7 +145,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://xoddwpia4h.duopei-m.xiaoyemaovip.com": {
-    "name": "夏日小野猫",
+    "company": "夏日小野猫",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -169,7 +169,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://exjomkwuav.duopei-m.manongnet.cn": {
-    "name": "今天喝酸奶",
+    "company": "今天喝酸奶",
     "change_body_selector": "body",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
@@ -196,7 +196,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://bisevslwz1.duopei-m.manongnet.cn": {
-    "name": "柠檬恋人",
+    "company": "柠檬恋人",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -221,7 +221,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://p54yt8ccje.duopei-m.manongnet.cn": {
-    "name": "耳边蜜语",
+    "company": "耳边蜜语",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -247,7 +247,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://j59atjds2a.duopei-m.manongnet.cn": {
-    "name": "时光恋人",
+    "company": "时光恋人",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -269,7 +269,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://dfbviostem.duopei-m.99c99c.com": {
-    "name": "灯火阑珊处",
+    "company": "灯火阑珊处",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -293,7 +293,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://tmopgz66ne.duopei-m.manongnet.cn": {
-    "name": "知心树洞",
+    "company": "知心树洞",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -319,7 +319,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://o5naicsqby.duopei-m.manongnet.cn": {
-    "name": "向往之恋",
+    "company": "向往之恋",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -345,7 +345,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://l67ewbjfvw.duopei-m.huayushudong.com": {
-    "name": "花语树洞",
+    "company": "花语树洞",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -371,7 +371,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://0oofebivlh.duopei-m.manongnet.cn": {
-    "name": "微微树洞",
+    "company": "微微树洞",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
@@ -397,7 +397,7 @@
     "img_wall_selector": "div.top-info img"
   },
   "http://t3emfwrung.duopei-m.manongnet.cn": {
-    "name": "惊鸿之恋",
+    "company": "惊鸿之恋",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog-image, .van-dialog, .van-dialog--default , .van-dialog__content",
     "user_card_selector": ".van-cell__value.van-cell__value--alone:not(.van-field__value)",
