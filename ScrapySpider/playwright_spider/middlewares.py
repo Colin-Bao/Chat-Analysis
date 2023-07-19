@@ -2,17 +2,9 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-import pandas as pd
 from datetime import datetime
-
 import json
-
-import time
-
-import asyncio
-
 from scrapy import signals
-import logging
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 from scrapy.http import Response, Request, HtmlResponse
@@ -143,7 +135,7 @@ class PWDownloaderMiddleware:
                     const subElement = element.querySelector(classname);
                     if (subElement) {
                         let textContent;
-                        if (attr === 'Sex') {
+                        if (attr === 'SexBg') {
                             textContent = subElement.getAttribute("style").trim();
                         } else if (attr === 'GradeImg') {
                             textContent = subElement.getAttribute("src").trim();
@@ -168,7 +160,7 @@ class PWDownloaderMiddleware:
         el_dict = request.meta.get('locator_dict')
         # logging.getLogger('定位器字典').info(el_dict)
 
-        # 提取
+        # JS提取
         user_dict_list = await page.evaluate(JS_USER_INFO,
                                              {"userSelector": el_dict['user_card_selector'],
                                               'itemDict': el_dict['user_info_selector']})
@@ -189,7 +181,7 @@ class PWDownloaderMiddleware:
         # 按需调用url爬虫
         if request.meta.get('use_url_crawl', False):
             url_dict_list = await self.get_user_urls(request, page)
-
+            assert len(url_dict_list) == len(user_dict_list)
             return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}
         else:
             return {'res': user_dict_list}
@@ -224,8 +216,11 @@ class PWDownloaderMiddleware:
 
                 # 模拟点击元素
                 await element.highlight()
-                await element.click()
-                await page.wait_for_url('**/detail/**')  # 等待页面跳转
+                async with page.expect_navigation(url='**/detail/**') as navigation_info:
+                    await element.click()
+
+                # await element.click()
+                # await page.wait_for_url('**/detail/**')  # 等待页面跳转
 
                 # 获取并打印新页面的URL
                 if 'detail' in page.url:
@@ -252,7 +247,7 @@ class PWDownloaderMiddleware:
     async def process_request(self, request, spider):
         # Called for each request that goes through the downloader
         # middleware.
-        if request.meta.get('PlaywrightDownloaderMiddleware') and not request.meta.get('handled'):
+        if request.meta.get('PWDownloaderMiddleware') and not request.meta.get('handled'):
             # 启动浏览器
             playwright = await async_playwright().start()
             browser = await playwright.chromium.launch(headless=request.meta.get('Playwright_Headless'))

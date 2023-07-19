@@ -24,7 +24,7 @@ class DuopeiSpider(Spider):
     start_urls = ['http://tj5uhmrpeq.duopei-m.featnet.com', 'http://oxxs5iqzqz.duopei-m.manongnet.cn',
                   'http://8mukjha763.duopei-m.99c99c.com', 'http://9uybjxsbfh.duopei-m.manongnet.cn']
 
-    # start_urls = ['http://tj5uhmrpeq.duopei-m.featnet.com']
+    # start_urls = ['http://oxxs5iqzqz.duopei-m.manongnet.cn']
 
     def start_requests(self):
         with open(
@@ -34,7 +34,7 @@ class DuopeiSpider(Spider):
 
         for url in self.start_urls:
             yield Request(url=url, callback=self.parse,
-                          meta={'PlaywrightDownloaderMiddleware': True,
+                          meta={'PWDownloaderMiddleware': True,
                                 'Playwright_Headless': True,
                                 'Playwright_Method': 'get_user_info',
                                 'use_url_crawl': False,

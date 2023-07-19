@@ -8,17 +8,17 @@
     "user_info_selector": {
       "Name": ".name.text-ellipsis",
       "Age": ".sex-age",
-      "Sex": ".sex-age",
+      "SexBg": ".sex-age",
       "Online": ".StatusEnum",
-      "Grade": ".minPrice",
+      "GradePrice": ".minPrice",
       "Service": ".status.text-ellipsis"
     },
     "user_info_type": {
       "Name": "category",
       "Age": "uint8",
-      "Sex": "category",
+      "SexBg": "category",
       "Online": "category",
-      "Grade": "category",
+      "GradePrice": "category",
       "Service": "category",
       "Source": "category"
     },
@@ -41,7 +41,7 @@
     "user_info_selector": {
       "Name": ".name",
       "Age": ".sex-age",
-      "Sex": ".sex-age",
+      "SexBg": ".sex-age",
       "Online": ".status.text-ellipsis",
       "GradeImg": ".grade img",
       "Service": ".status.text-ellipsis"
@@ -49,7 +49,7 @@
     "user_info_type": {
       "Name": "category",
       "Age": "uint8",
-      "Sex": "category",
+      "SexBg": "category",
       "Online": "category",
       "GradeImg": "category",
       "Service": "category",
