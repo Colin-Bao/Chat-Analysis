@@ -14,7 +14,7 @@ class DuopeiSpider(Spider):
             #         "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
             #         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
             # },
-            "CONCURRENT_REQUESTS": 5,
+            "CONCURRENT_REQUESTS": 6,
             "LOG_LEVEL": "INFO",
             "FEEDS": {
                     'data/%(name)s.jsonlines': {'format': 'jsonlines', 'overwrite': True, 'encoding': 'utf8'},

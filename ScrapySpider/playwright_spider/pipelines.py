@@ -34,12 +34,13 @@ class UserPipeline:
         df.to_csv('data/user.csv', index=False)
 
         # 基础数据清洗
-        df['Name'] = df['Name'].apply(lambda x: x.strip())
+        df['name'] = df['Name'].apply(lambda x: x.strip())
 
-        # 提取在线状态信息
-        def extract_online_status(df_online):
-            df_online['online_status'] = np.where(df_online['Service'].str.contains('在线'), 1, 0)
-            return df_online
+        # 提取条件状态信息 全部转为了数字
+        def extract_by_condition(df_con):
+            df_con['online_status'] = np.where(df_con['Service'].str.contains('在线'), 1, 0)
+            df_con['tag'] = np.where(df_con['Tag'] != 0, df_con['Tag'], df_con['TagSep'])
+            return df_con
 
         # 提取等级信息
         def extract_grade(df_grade):
@@ -102,9 +103,12 @@ class UserPipeline:
             return df_ser
 
         # 提取所有信息
-        df = extract_service(extract_grade(extract_online_status(df)))
+        df = extract_by_condition(extract_service(extract_grade(df)))
 
-        # 提取
+        # 选择数据列
+        df = df[['Age', 'AvatarImg', 'grade', 'name', 'online_status',
+                 'Position', 'Profile', 'tag', 'audio_url', 'company', 'crawl_date', 'crawl_date_2',
+                 'grade', 'homepage', 'online_status', 'rank', 'rank_2', 'website', ]]
 
         # 数据验证
 
