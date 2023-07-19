@@ -10,6 +10,7 @@ from scrapy.exceptions import DropItem
 import logging
 import pandas as pd
 from .items import UserItem
+import numpy as np
 
 
 # noinspection PyMethodMayBeStatic
@@ -34,48 +35,80 @@ class UserPipeline:
 
         # 基础数据清洗
         df['Name'] = df['Name'].apply(lambda x: x.strip())
-        df['online_status'] = df['Online'].apply(lambda x: '在线' in x)
 
-        # Function to extract grade from the string or url
-        def extract_grade(s, position):
-            if pd.isnull(s):  # Check if the string is NaN
-                return 0
-            else:
-                if position == 'before':
-                    target_part = s.rsplit('/', 1)[0]  # Split the string by '/' and take the first part
-                elif position == 'after':
-                    target_part = s.rsplit('/', 1)[-1]  # Split the string by '/' and take the last part
+        # 提取在线状态信息
+        def extract_online_status(df_online):
+            df_online['online_status'] = np.where(df_online['Service'].str.contains('在线'), 1, 0)
+            return df_online
+
+        # 提取等级信息
+        def extract_grade(df_grade):
+            def extract_grade_by_str(s, position):
+                if pd.isnull(s):  # Check if the string is NaN
+                    return 0
                 else:
-                    raise ValueError("Position must be either 'before' or 'after'")
+                    if position == 'before':
+                        target_part = s.rsplit('/', 1)[0]  # Split the string by '/' and take the first part
+                    elif position == 'after':
+                        target_part = s.rsplit('/', 1)[-1]  # Split the string by '/' and take the last part
+                    else:
+                        raise ValueError("Position must be either 'before' or 'after'")
 
-                grade = re.findall(r'\d+', target_part)  # Find all digit sequences in the target part
-                return grade[0] if grade else 0
+                    grade = re.findall(r'\d+', target_part)  # Find all digit sequences in the target part
+                    return grade[0] if grade else 0
 
-        # Apply the function to the 'Grade' and 'GradeImg' columns
-        df['Grade_from_price'] = df['GradePrice'].apply(extract_grade, position='before')
-        df['Grade_from_url'] = df['GradeImg'].apply(extract_grade, position='after')
+            # Apply the function to the 'Grade' and 'GradeImg' columns
+            df_grade['Grade_from_price'] = df_grade['GradePrice'].apply(extract_grade_by_str, position='before')
+            df_grade['Grade_from_url'] = df_grade['GradeImg'].apply(extract_grade_by_str, position='after')
 
-        # 分列提取服务信息
-        df['Service'] = df['Service'].replace({r'●': '|', r'、': '|'}, regex=True).str.strip()
-        services_df = df['Service'].str.get_dummies(sep='|')
-        services_df.columns = services_df.columns.str.strip()
-        df = df.join(services_df)
+            return df_grade
 
-        # 转化为数字列
-        for i in ['Age', 'Grade_from_price', 'Grade_from_url']:
-            df[i] = pd.to_numeric(df[i], errors='coerce').fillna(0).astype(int)
+        # 提取服务信息
+        def extract_service(df_ser):
+            df_ser['Service'] = df_ser['Service'].replace({r'●': '|', r'、': '|'}, regex=True).str.strip()
+            services_df = df_ser['Service'].str.get_dummies(sep='|')
+            services_df.columns = services_df.columns.str.strip()
+            df_ser = df_ser.join(services_df)
 
-        # 映射重复列名
-        column_mapping = {'Grade_from_price': 'grade', 'Grade_from_url': 'grade',
-                          '语音连麦': '连麦', '游戏陪玩': '游戏', '离线 + 客服预约': '离线', '买断专属': '买断'}
-        df.rename(columns=column_mapping, inplace=True)
+            # 转化为数字列
+            for i in ['Age', 'Grade_from_price', 'Grade_from_url']:
+                df_ser[i] = pd.to_numeric(df_ser[i], errors='coerce').fillna(0).astype(int)
 
-        # 重复列相加
-        df = df.groupby(level=0, axis=1).sum()
+            # 映射重复列名
+            column_mapping = {
+                    'grade': ['Grade_from_price', 'Grade_from_url'],
+                    '连麦': ['语音连麦', '可语音', '可连麦', '语音通话', ],
+                    '视频': ['视频聊天'],
+                    '游戏': ['游戏陪玩', '原神', 'csgo', '可游戏', '和平精英一局', '王者荣耀一局', '永劫无间', '金铲铲之战', '蛋仔派对',
+                             '手游',
+                             '端游', '陪玩'],
+                    '文语': ['文字语音条'],
+                    '学习辅导': ['教作业'],
+                    '点歌': ['点歌服务', '唱歌'],
+                    '离线': ['离线 + 客服预约'],
+                    '买断': ['买断专属'],
+            }
+
+            # 翻转字典，准备进行列名的映射
+            reverse_mapping = {old: new for new, old_list in column_mapping.items() for old in old_list}
+
+            # 映射列名
+            for col in df_ser.columns:
+                if col in reverse_mapping:
+                    df_ser.rename(columns={col: reverse_mapping[col]}, inplace=True)
+
+            # 重复列相加
+            df_ser = df_ser.groupby(level=0, axis=1).sum()
+            return df_ser
+
+        # 提取所有信息
+        df = extract_service(extract_grade(extract_online_status(df)))
+
+        # 提取
 
         # 数据验证
 
         # 保存数据到数据库或其他地方
         df.to_csv('data/user_clean.csv', index=False)
         # df = pd.DataFrame(self.items)
-        # print(df)
+        print(df.columns)

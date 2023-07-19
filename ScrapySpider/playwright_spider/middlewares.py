@@ -146,6 +146,7 @@ class PWDownloaderMiddleware:
                 index = index + 1
                 row['crawl_date_2'] = nowFormatted;
                 row['company'] = O.company;
+                row['website'] = O.website;
                 for (const [attr, classname] of Object.entries(O.itemDict)) {
                     const subElement = element.querySelector(classname);
                     if (subElement) {
@@ -158,7 +159,10 @@ class PWDownloaderMiddleware:
                             textContent = subElement.getAttribute("src").trim();
                         } else if (attr === 'AvatarImg') {
                             textContent = subElement.getAttribute("src").trim();
-                        } else if (attr === 'Tag') {
+                        } else if (attr === 'TagSep') {
+                            let texts = Array.from(subElement.querySelectorAll("span"), span => span.textContent.trim());
+                            textContent = texts.join('|');
+                        } else if (attr === 'ServiceSep') {
                             let texts = Array.from(subElement.querySelectorAll("span"), span => span.textContent.trim());
                             textContent = texts.join('|');
                         }  
@@ -188,7 +192,8 @@ class PWDownloaderMiddleware:
         user_dict_list = await page.evaluate(JS_USER_INFO,
                                              {"userSelector": el_dict['user_card_selector'],
                                               'itemDict': el_dict['user_info_selector'],
-                                              'company': el_dict['company']})  # 增加需要的信息
+                                              'company': el_dict['company'],
+                                              'website': request.url})  # 增加需要的信息
         return user_dict_list
 
     async def get_user_info(self, request, page: Page) -> {}:
@@ -266,7 +271,6 @@ class PWDownloaderMiddleware:
                 # 获取并打印新页面的URL
                 if 'detail' in page.url:
                     user_dict['homepage'] = page.url
-                    user_dict['website'] = request.url
                     user_dict['rank'] = i
                     user_dict['crawl_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     user_dict['audio_url'] = (await response_info.value).url
