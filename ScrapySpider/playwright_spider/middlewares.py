@@ -2,6 +2,10 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import time
+
+import logging
+
 from datetime import datetime
 import json
 from scrapy import signals
@@ -86,15 +90,20 @@ class PWDownloaderMiddleware:
             if await finished_item_locator.count():
                 break
 
-    async def click_button_by_selector(self, page, button_selector: str):
-        await page.evaluate('''
-        var elements = document.querySelectorAll(".van-overlay, .van-dialog");
-        if(elements.length > 0) {
-            elements.forEach((element) => {
-                element.parentNode.removeChild(element);
-            });
-        }
-        ''')
+    async def remove_node_by_selector(self, page, remove_selector: str):
+        if remove_selector:
+            await page.evaluate('''
+                    O => {
+                        var elements = document.querySelectorAll(O);
+                        if(elements.length > 0) {
+                            elements.forEach((element) => {
+                                element.parentNode.removeChild(element);
+                            });
+                        }
+                    }
+                    ''', remove_selector)
+
+        # logging.getLogger('移除节点').info(f'移除节点：{remove_selector}')
         # if button_selector:
         #     button_locator = page.locator(button_selector)
         #     if await button_locator.count():
@@ -114,6 +123,12 @@ class PWDownloaderMiddleware:
         店员信息解析
         :return:
         """
+        # temp = page.locator('.van-cell__value.van-cell__value--alone:not(.van-field__value)').first
+        # temp2 = temp.locator('.position').first
+        # temp_t = await temp.inner_html()
+        # position = temp.locator('.position')
+        # print(await position.text_content())
+        logging.getLogger('parse_clerk').info(f'店员信息解析：{request.url}')
 
         # 提取用户信息JS代码
         JS_USER_INFO = '''
@@ -141,16 +156,25 @@ class PWDownloaderMiddleware:
                             textContent = subElement.getAttribute("src").trim();
                         } else if (attr === 'SexImg') {
                             textContent = subElement.getAttribute("src").trim();
-                        } else {
+                        } else if (attr === 'AvatarImg') {
+                            textContent = subElement.getAttribute("src").trim();
+                        } else if (attr === 'Tag') {
+                            let texts = Array.from(subElement.querySelectorAll("span"), span => span.textContent.trim());
+                            textContent = texts.join('|');
+                        }  
+                        else {
                             textContent = subElement.textContent.trim();
                         }
                         row[attr] = textContent;
                     }
+                    else{
+                        row[attr] = classname;
+                    }
                 }
-        
-                if (Object.keys(O.itemDict).every(key => key in row)) {
-                    data.push(row);
-                }
+                data.push(row);
+                //if (Object.keys(O.itemDict).every(key => key in row)) {
+                //    data.push(row);
+                //}
             }
             return data;
         }
@@ -164,15 +188,26 @@ class PWDownloaderMiddleware:
         user_dict_list = await page.evaluate(JS_USER_INFO,
                                              {"userSelector": el_dict['user_card_selector'],
                                               'itemDict': el_dict['user_info_selector']})
-
+        # logging.getLogger('结果').info(user_dict_list)
         return user_dict_list
 
     async def get_user_info(self, request, page: Page) -> {}:
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
 
+        # 改变class
+        change_body_selector = el_dict.get('change_body_selector', None)
+        if change_body_selector:
+            await page.evaluate("""O=>{document.querySelector(O).className ="";} """, el_dict.get('change_body_selector', None))
+
+        # 删除元素
+        await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
+
         # 滚动页面
         await self.scroll_page(page.locator(el_dict['user_card_selector']), page.locator(el_dict['page_finished_selector']))
+
+        # 删除元素
+        await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
 
         # 常规爬虫
         user_dict_list = await self.parse_clerk(request, page)
@@ -189,6 +224,10 @@ class PWDownloaderMiddleware:
     async def get_user_urls(self, request, page: Page) -> [{}, ...]:
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
+
+        # 移除阻碍元素
+        await self.remove_node_by_selector(page, el_dict.get('remove_other_selector', None))
+        await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
 
         # 定位到具有跳转链接的元素
         click_locators = page.locator(el_dict['user_card_selector'])
@@ -207,7 +246,9 @@ class PWDownloaderMiddleware:
             try:
                 # 将元素滚动到视野中
                 await element.scroll_into_view_if_needed()
-                await self.click_button_by_selector(page, el_dict.get('login_button_selector', None))  # 点击登录提示框
+
+                # 移除阻碍元素
+                await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
 
                 # 解析音频
                 audio_locator = element.locator(el_dict['user_audio_selector'])

@@ -23,6 +23,12 @@ class UserItem(Item):
     SexImg = Field()
     Online = Field()
     Position = Field()
+    Grade = Field()
     GradePrice = Field()
     GradeImg = Field()
     Service = Field()
+    Tag = Field()
+    Tag2 = Field()
+    AvatarImg = Field()
+    Profile = Field()
+

@@ -21,24 +21,26 @@ class DuopeiSpider(Spider):
             }
 
     }
-    start_urls = ['http://tj5uhmrpeq.duopei-m.featnet.com', 'http://oxxs5iqzqz.duopei-m.manongnet.cn',
-                  'http://8mukjha763.duopei-m.99c99c.com', 'http://9uybjxsbfh.duopei-m.manongnet.cn']
+    # 读取定位器文件
+    with open(
+            '/Users/colin/Library/Mobile Documents/com~apple~CloudDocs/PycharmProjects/Chat-Analysis/DuopeiSpider/Utils/js_tools/user_selector.json',
+            "r") as file:
+        json_data = file.read()
 
-    # start_urls = ['http://oxxs5iqzqz.duopei-m.manongnet.cn']
+    start_urls = list(json.loads(json_data).keys())
+
+    # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
+    # start_urls = ['http://oxxs5iqzqz.duopei-m.manongnet.cn'] # 最快的
+    # start_urls = ['http://t3emfwrung.duopei-m.manongnet.cn'] # 新增
 
     def start_requests(self):
-        with open(
-                '/Users/colin/Library/Mobile Documents/com~apple~CloudDocs/PycharmProjects/Chat-Analysis/DuopeiSpider/Utils/js_tools/user_selector.json',
-                "r") as file:
-            json_data = file.read()
-
         for url in self.start_urls:
             yield Request(url=url, callback=self.parse,
                           meta={'PWDownloaderMiddleware': True,
                                 'Playwright_Headless': True,
                                 'Playwright_Method': 'get_user_info',
                                 'use_url_crawl': False,
-                                'locator_dict': json.loads(json_data)[url],
+                                'locator_dict': json.loads(self.json_data)[url],
                                 })
 
     def parse(self, response):
