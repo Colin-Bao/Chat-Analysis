@@ -34,7 +34,9 @@ class UserPipeline:
         df.to_csv('data/user.csv', index=False, escapechar='\\')
 
         # 基础数据清洗
-        df['name'] = df['Name'].apply(lambda x: x.strip())
+        df['name'] = df['Name'].str.strip()
+        df['Tag'] = df['Tag'].replace('\s+|\n', '', regex=True)
+        df['TagSep'] = df['TagSep'].replace('\s+|\n', '', regex=True)
 
         # 提取条件状态信息 全部转为了数字
         def extract_by_condition(df_con):
