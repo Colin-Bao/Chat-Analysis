@@ -31,7 +31,7 @@ class UserPipeline:
 
     def close_spider(self, spider):
         df = pd.DataFrame(self.items)
-        df.to_csv('data/user.csv', index=False)
+        df.to_csv('data/user.csv', index=False, escapechar='\\')
 
         # 基础数据清洗
         df['name'] = df['Name'].apply(lambda x: x.strip())
@@ -66,6 +66,7 @@ class UserPipeline:
 
         # 提取服务信息
         def extract_service(df_ser):
+            df_ser['Service'] = np.where(pd.isnull(df_ser['Service']), df_ser['ServiceSep'], df_ser['Service'])
             df_ser['Service'] = df_ser['Service'].replace({r'●': '|', r'、': '|'}, regex=True).str.strip()
             services_df = df_ser['Service'].str.get_dummies(sep='|')
             services_df.columns = services_df.columns.str.strip()
@@ -113,6 +114,6 @@ class UserPipeline:
         # 数据验证
 
         # 保存数据到数据库或其他地方
-        df.to_csv('data/user_clean.csv', index=False)
+        df.to_csv('data/user_clean.csv', index=False, escapechar='\\')
         # df = pd.DataFrame(self.items)
         print(df.columns)
