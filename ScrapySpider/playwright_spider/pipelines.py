@@ -58,7 +58,7 @@ class UserPipeline:
                         raise ValueError("Position must be either 'before' or 'after'")
 
                     grade = re.findall(r'\d+', target_part)  # Find all digit sequences in the target part
-                    return grade[0] if grade else 0
+                    return int(grade[0]) if grade else 0  # 过滤 TODO 放到其他部分
 
             # Apply the function to the 'Grade' and 'GradeImg' columns
             df_grade['Grade_from_price'] = df_grade['GradePrice'].apply(extract_grade_by_str, position='before')

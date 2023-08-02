@@ -2,13 +2,11 @@ import sys
 import asyncio
 
 sys.path.append('/home/ubuntu/PycharmProjects/Chat-Analysis')
-
 from DuopeiSpider.Crawler.user_info_crawler import UserInfoScraper
 from DuopeiSpider.Utils.js_tools.js_script import WEBSITE_DICT
 
 
 # if WEBSITE_DICT[website]['name'] == '糖恋树洞'
-
 async def main():
     async with UserInfoScraper(True) as scraper:
         semaphore = asyncio.Semaphore(1)

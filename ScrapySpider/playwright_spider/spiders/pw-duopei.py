@@ -14,12 +14,11 @@ class DuopeiSpider(Spider):
             #         "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
             #         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
             # },
-            "CONCURRENT_REQUESTS": 6,
+            "CONCURRENT_REQUESTS": 2,
             "LOG_LEVEL": "INFO",
             "FEEDS": {
                     'data/%(name)s.jsonlines': {'format': 'jsonlines', 'overwrite': True, 'encoding': 'utf8'},
             }
-
     }
 
     # 读取定位器文件
@@ -32,7 +31,7 @@ class DuopeiSpider(Spider):
 
     # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
     # start_urls = ['http://oxxs5iqzqz.duopei-m.manongnet.cn'] # 最快的
-    # start_urls = ['http://lwzqvd7nvk.duopei-m.manongnet.cn']  # 新增
+    # start_urls = ['http://bisevslwz1.duopei-m.manongnet.cn']  # 新增
 
     def start_requests(self):
         for url in self.start_urls:
@@ -40,7 +39,7 @@ class DuopeiSpider(Spider):
                           meta={'PWDownloaderMiddleware': True,
                                 'Playwright_Headless': True,
                                 'Playwright_Method': 'get_user_info',
-                                'use_url_crawl': False,
+                                'use_url_crawl': True,
                                 'locator_dict': json.loads(self.json_data)[url],
                                 })
 

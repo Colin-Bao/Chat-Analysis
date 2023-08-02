@@ -2,7 +2,6 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-import time
 
 import logging
 
@@ -182,7 +181,7 @@ class PWDownloaderMiddleware:
             }
             return data;
         }
-                        '''
+        '''
 
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
