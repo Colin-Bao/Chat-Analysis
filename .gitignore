@@ -1,3 +1,4 @@
 /DataSets/
 *.pyc
 .DS_Store
+/ScrapySpider/playwright_spider/spiders/data/duopei.jsonlines

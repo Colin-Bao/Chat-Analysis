@@ -4,32 +4,57 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 
 from scrapy.item import Item, Field
+from sqlalchemy import Column
+from sqlalchemy.sql.sqltypes import *
+from sqlalchemy.ext.declarative import declarative_base
+import hashlib
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(String(200), primary_key=True)
+
+    # 数据类型用于数据验证和数据库映射
+    rank = Column(String(10))
+    rank_2 = Column(String(10))
+    website = Column(String(100))
+    homepage = Column(String(100))
+    crawl_date = Column(DateTime)
+    crawl_date_2 = Column(DateTime)
+    audio_url = Column(String(100))
+    Name = Column(String(20))
+    Age = Column(String(20))
+    SexBg = Column(String(100))
+    SexImg = Column(String(100))
+    Online = Column(String(100))
+    Position = Column(String(20))
+    Grade = Column(String(20))
+    GradePrice = Column(String(20))
+    GradeImg = Column(String(100))
+    Service = Column(String(100))
+    ServiceSep = Column(String(100))
+    Tag = Column(String(100))
+    TagSep = Column(String(100))
+    AvatarImg = Column(String(100))
+    Profile = Column(String(100))
+    company = Column(String(20))
+
+    def create_id(self):
+        hash_object = hashlib.sha256()
+        combined_data = self.company + self.Name
+        hash_object.update(combined_data.encode('utf-8'))
+        return hash_object.hexdigest()
 
 
 class UserItem(Item):
     """
     基础用户信息：在首页能获取到的一级信息
     """
-    rank = Field()
-    rank_2 = Field()
-    website = Field()
-    homepage = Field()
-    crawl_date = Field()
-    crawl_date_2 = Field()
-    audio_url = Field()
-    Name = Field()
-    Age = Field()
-    SexBg = Field()
-    SexImg = Field()
-    Online = Field()
-    Position = Field()
-    Grade = Field()
-    GradePrice = Field()
-    GradeImg = Field()
-    Service = Field()
-    Tag = Field()
-    TagSep = Field()
-    AvatarImg = Field()
-    Profile = Field()
-    company = Field()
-    ServiceSep = Field()
+    model = Field(serializer=User)
+
+    def __init__(self, user):
+        super().__init__()
+        self['model'] = user

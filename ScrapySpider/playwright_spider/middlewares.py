@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import time
 
 import logging
 
@@ -265,13 +266,13 @@ class PWDownloaderMiddleware:
                 # 解析音频
                 audio_locator = element.locator(el_dict['user_audio_selector'])
                 await audio_locator.highlight()
-                async with page.expect_response(lambda response: 'mp3' in response.url, timeout=2000) as response_info:
+                async with page.expect_response(lambda response: 'mp3' in response.url, timeout=1000) as response_info:
                     await audio_locator.click()
 
                 # 解析url跳转
                 await element.highlight()
                 await element.click()
-                await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=2000)
+                await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
 
                 # 获取并打印新页面的URL
                 if 'detail' in page.url:
@@ -300,9 +301,10 @@ class PWDownloaderMiddleware:
         if request.meta.get('PWDownloaderMiddleware') and not request.meta.get('handled'):
             # 启动浏览器
             playwright = await async_playwright().start()
-            browser = await playwright.chromium.launch(headless=request.meta.get('Playwright_Headless'))
+            browser = await playwright.chromium.launch(headless=request.meta.get('Playwright_Headless'),
+                                                       # args=['--ignore-gpu-blacklist', '--enable-gpu-rasterization']
+                                                       )
             page = await browser.new_page()
-
             # 禁用图片
             await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
             await page.goto(request.url)

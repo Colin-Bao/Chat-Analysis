@@ -7,6 +7,7 @@
         <serverdata>
           <mappings>
             <mapping deploy="/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/Chat-Web" local="$PROJECT_DIR$/../Chat-Web" />
           </mappings>
         </serverdata>
       </paths>
