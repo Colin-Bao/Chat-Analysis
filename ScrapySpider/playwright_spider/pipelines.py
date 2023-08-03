@@ -2,6 +2,8 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+from pathlib import Path
+
 import re
 
 # useful for handling different item types with a single interface
@@ -31,7 +33,7 @@ class UserPipeline:
 
     def close_spider(self, spider):
         df = pd.DataFrame(self.items)
-        df.to_csv('data/user.csv', index=False, escapechar='\\')
+        df.to_csv(Path(__file__).resolve().parent / 'data' / 'user.csv', index=False, escapechar='\\')
 
         # 基础数据清洗
         df['name'] = df['Name'].str.strip()
@@ -116,6 +118,6 @@ class UserPipeline:
         # 数据验证
 
         # 保存数据到数据库或其他地方
-        df.to_csv('data/user_clean.csv', index=False, escapechar='\\')
+        df.to_csv(Path(__file__).resolve().parent / 'data' / 'user_clean.csv', index=False, escapechar='\\')
         # df = pd.DataFrame(self.items)
-        print(df.columns)
+        # print(df.columns)

@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@192.168.2.13" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="ubuntu-remote">
+      <paths name="ubuntu@192.168.2.13">
         <serverdata>
           <mappings>
-            <mapping deploy="/PycharmProjects/Chat-Web" local="$PROJECT_DIR$/../Chat-Web" web="/" />
-            <mapping deploy="/PycharmProjects/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="ubuntu@43.134.162.126:22 password">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/ubuntu/PycharmProjects/Chat-Analysis" local="$PROJECT_DIR$" />
+            <mapping deploy="/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

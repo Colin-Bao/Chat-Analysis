@@ -1,6 +1,9 @@
+import os
+
 import json
 
 import logging
+import pandas as pd
 from pathlib import Path
 from scrapy import Spider, Item, Field
 from scrapy.http import Response, Request
@@ -22,22 +25,21 @@ class DuopeiSpider(Spider):
     }
 
     # 读取定位器文件
-    with open(
-            '/Users/colin/Library/Mobile Documents/com~apple~CloudDocs/PycharmProjects/Chat-Analysis/DuopeiSpider/Utils/js_tools/user_selector.json',
-            "r") as file:
+    file_path = Path(__file__).resolve().parent.parent / 'data' / 'user_selector.json'
+    with open(file_path, "r", encoding='utf-8') as file:
         json_data = file.read()
 
     start_urls = list(json.loads(json_data).keys())
 
     # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
     # start_urls = ['http://oxxs5iqzqz.duopei-m.manongnet.cn'] # 最快的
-    # start_urls = ['http://bisevslwz1.duopei-m.manongnet.cn']  # 新增
+    start_urls = ['http://o5naicsqby.duopei-m.manongnet.cn']  # 新增
 
     def start_requests(self):
         for url in self.start_urls:
             yield Request(url=url, callback=self.parse,
                           meta={'PWDownloaderMiddleware': True,
-                                'Playwright_Headless': True,
+                                'Playwright_Headless': False,
                                 'Playwright_Method': 'get_user_info',
                                 'use_url_crawl': True,
                                 'locator_dict': json.loads(self.json_data)[url],

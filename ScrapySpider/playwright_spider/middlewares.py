@@ -122,11 +122,6 @@ class PWDownloaderMiddleware:
         店员信息解析
         :return:
         """
-        # temp = page.locator('.van-cell__value.van-cell__value--alone:not(.van-field__value)').first
-        # temp2 = temp.locator('.position').first
-        # temp_t = await temp.inner_html()
-        # position = temp.locator('.position')
-        # print(await position.text_content())
 
         # 提取用户信息JS代码
         JS_USER_INFO = '''
@@ -220,7 +215,7 @@ class PWDownloaderMiddleware:
         # 按需调用url爬虫
         if request.meta.get('use_url_crawl', False):
             url_dict_list = await self.get_user_urls(request, page)
-            assert len(url_dict_list) == len(user_dict_list)
+            assert len(url_dict_list) == len(user_dict_list)  # 由于使用了url爬虫，不一定能对上
             return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}
         else:
             return {'res': user_dict_list}
@@ -245,7 +240,7 @@ class PWDownloaderMiddleware:
             user_dict = {}
             # 获取单个元素
             element = click_locators.nth(i)
-            # logging.getLogger('元素数量').info(element)
+            # await element.highlight()
 
             try:
                 # 将元素滚动到视野中
