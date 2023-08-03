@@ -190,7 +190,15 @@ class PWDownloaderMiddleware:
                                               'website': request.url})  # 增加需要的信息
         return user_dict_list
 
-    async def get_user_info(self, request, page: Page) -> {}:
+    async def get_user_info(self, request, page: Page, debug_batch: int = 5) -> {}:
+        """
+        获取用户信息
+        :param debug_batch: 用于小批量调试
+        :param request:
+        :param page:
+        :return: 返回用户信息字典
+        """
+
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
 
@@ -210,17 +218,20 @@ class PWDownloaderMiddleware:
 
         # 常规爬虫
         user_dict_list = await self.parse_clerk(request, page)
+
+        # 截断
+        user_dict_list = user_dict_list[:min(debug_batch, len(user_dict_list))]
         # logging.getLogger('常规爬虫').info(user_dict_list)
 
         # 按需调用url爬虫
         if request.meta.get('use_url_crawl', False):
-            url_dict_list = await self.get_user_urls(request, page)
-            assert len(url_dict_list) == len(user_dict_list)  # 由于使用了url爬虫，不一定能对上
+            url_dict_list = await self.get_user_urls(request, page, debug_batch)
+            assert len(url_dict_list) == len(user_dict_list)  # TODO 由于使用了url爬虫，不一定能对上
             return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}
         else:
             return {'res': user_dict_list}
 
-    async def get_user_urls(self, request, page: Page) -> [{}, ...]:
+    async def get_user_urls(self, request, page: Page, debug_batch) -> [{}, ...]:
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
 
@@ -235,9 +246,11 @@ class PWDownloaderMiddleware:
         elements_count = await click_locators.count()
         user_dict_list = []
 
-        for i in tqdm(range(elements_count)):
+        for i in tqdm(range(elements_count)[:min(debug_batch, elements_count)]):
             # 用于存储URL的字典
-            user_dict = {}
+            user_dict = {'rank': i, 'crawl_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                         'audio_url': '', 'homepage': '', }
+
             # 获取单个元素
             element = click_locators.nth(i)
             # await element.highlight()
@@ -251,32 +264,30 @@ class PWDownloaderMiddleware:
 
                 # 解析音频
                 audio_locator = element.locator(el_dict['user_audio_selector'])
-                async with page.expect_response(lambda response: 'mp3' in response.url) as response_info:
+                await audio_locator.highlight()
+                async with page.expect_response(lambda response: 'mp3' in response.url, timeout=2000) as response_info:
                     await audio_locator.click()
 
-                # 模拟点击元素
+                # 解析url跳转
                 await element.highlight()
-                async with page.expect_navigation(url='**/detail/**') as navigation_info:
-                    await element.click()
-
-                # await element.click()
-                # await page.wait_for_url('**/detail/**')  # 等待页面跳转
+                await element.click()
+                await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=2000)
 
                 # 获取并打印新页面的URL
                 if 'detail' in page.url:
                     user_dict['homepage'] = page.url
-                    user_dict['rank'] = i
-                    user_dict['crawl_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     user_dict['audio_url'] = (await response_info.value).url
-                    user_dict_list.append(user_dict)
                 else:
-                    pass
+                    raise Exception('解析失败')
 
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
-                # await page.screenshot(path=f'{i}.png')
+                # TODO 捕获异常截图 await page.screenshot(path=f'{i}.png')
+                logging.getLogger('get_user_urls').error(f'获取用户URL失败：{e}')
                 continue
 
             finally:
+                # 任何失败都添加
+                user_dict_list.append(user_dict)
                 # 回到原始页面
                 if 'detail' in page.url:
                     await page.go_back()

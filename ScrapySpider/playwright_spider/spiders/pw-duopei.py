@@ -33,7 +33,7 @@ class DuopeiSpider(Spider):
 
     # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
     # start_urls = ['http://oxxs5iqzqz.duopei-m.manongnet.cn'] # 最快的
-    start_urls = ['http://o5naicsqby.duopei-m.manongnet.cn']  # 新增
+    # start_urls = ['http://0oofebivlh.duopei-m.manongnet.cn']  # 新增
 
     def start_requests(self):
         for url in self.start_urls:
