@@ -32,7 +32,7 @@ class DuopeiSpider(Spider):
     start_urls = list(json.loads(json_data).keys())
 
     # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
-    start_urls = ['http://0oofebivlh.duopei-m.manongnet.cn']  # 新增
+    start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
 
     def start_requests(self):
         for url in self.start_urls:

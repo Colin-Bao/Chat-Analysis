@@ -2,20 +2,18 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-from pathlib import Path
 
-import re
-
-# useful for handling different item types with a single interface
-import logging
-import pandas as pd
-from .items import User
 import numpy as np
+# useful for handling different item types with a single interface
+import pandas as pd
+import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from .items import User
 
-# noinspection PyMethodMayBeStatic
+
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
 class UserPipeline:
     """
     收集所有用户的数据，并创建DataFrame
@@ -27,22 +25,19 @@ class UserPipeline:
 
     def open_spider(self, spider):
         # 创建数据库连接，这里假设你的数据库名是mydatabase，用户名是myuser，密码是mypassword
-        self.engine = create_engine('mysql+mysqlconnector://user:1111@localhost/duopei')
+        self.engine = create_engine('mysql+mysqlconnector://user:1111@localhost/duopei?charset=utf8mb4')
         self.Session = sessionmaker(bind=self.engine)
 
         # 创建数据表，如果不存在的话
         User.__table__.create(bind=self.engine, checkfirst=True)
         # Base.metadata.create_all(self.engine)
 
-    def close_spider(self, spider):
-        self.engine.dispose()
-
     def process_item(self, item, spider):
         """
         在 process_item 方法中逐条处理数据可能更有效。这也可以让你更早地发现并处理潜在的数据问题。
         """
 
-        def clean_data(userobj: User):
+        def clean_data_df(userobj: User):
             # 将User对象的属性转换为字典
             user_dict = {column.name: getattr(user, column.name) for column in userobj.__table__.columns}
 
@@ -132,22 +127,43 @@ class UserPipeline:
 
             return df
 
+        def clean_data(date: User):
+            # 去除换行、回车、空格
+            date.Name = date.Name.strip()
+            date.TagSep = re.sub('\s+|\n', '', date.TagSep) if date.TagSep else None
+            date.Tag = re.sub('\s+|\n', '', date.Tag) if date.Tag else None
+
+            # 提取在线信息
+            date.online_status = True if ('在线' in (date.Online or '')) or ((date.Online or '') != '') else False
+
+            return date
+
         # 创建新的session
         session = self.Session()
+
         try:
             # 将item转换为User对象并添加到session
             user = item['model']
-            # df_user = clean_data(user).iloc[0]
-            # user = User(**df_user.to_dict())
-            
+
+            # 数据清洗
+            user = clean_data(user)
+            print(user.Name)
+
+            # 更新到数据库
             session.merge(user)
+
             # 提交session
             session.commit()
+
         except:
             # 如果发生错误，回滚session
             session.rollback()
             raise
+
         finally:
             # 不论是否发生错误，最后都要关闭session
             session.close()
         return item
+
+    def close_spider(self, spider):
+        self.engine.dispose()
