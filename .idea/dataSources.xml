@@ -1,22 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="default" uuid="2edd6f7e-17b8-428f-8a1e-331537fe0577">
-      <driver-ref>sqlite.xerial</driver-ref>
+    <data-source source="LOCAL" name="192.168.2.13" uuid="74a54579-8563-4eac-925c-90697d6bad6d">
+      <driver-ref>java.sql.Driver</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/ScrapySpider/dbs/default.db</jdbc-url>
-      <working-dir>$ProjectFileDir$</working-dir>
-      <libraries>
-        <library>
-          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.39.2/sqlite-jdbc-3.39.2.jar</url>
-        </library>
-      </libraries>
-    </data-source>
-    <data-source source="LOCAL" name="192.168.2.13" uuid="2d8bc187-d4fe-4498-b036-492cd2400242">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:mysql://192.168.2.13:3306</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>

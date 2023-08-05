@@ -1,12 +1,8 @@
-import os
-
 import json
-
-import logging
-import pandas as pd
 from pathlib import Path
-from scrapy import Spider, Item, Field
-from scrapy.http import Response, Request
+from scrapy import Spider
+from scrapy.http import Request
+from ..items import User, UserItem
 
 
 class DuopeiSpider(Spider):
@@ -17,7 +13,7 @@ class DuopeiSpider(Spider):
             #         "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
             #         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
             # },
-            "CONCURRENT_REQUESTS": 4,
+            "CONCURRENT_REQUESTS": 2,
             "LOG_LEVEL": "INFO",
             # "FEEDS": {
             #         'data/%(name)s.jsonlines': {'format': 'jsonlines', 'overwrite': True, 'encoding': 'utf8'},
@@ -32,21 +28,21 @@ class DuopeiSpider(Spider):
     start_urls = list(json.loads(json_data).keys())
 
     # start_urls = ['http://8mukjha763.duopei-m.99c99c.com']
-    start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
+    # start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
 
     def start_requests(self):
         for url in self.start_urls:
-            yield Request(url=url, callback=self.parse,
-                          meta={'PWDownloaderMiddleware': True,
-                                'Playwright_Headless': True,
-                                'Playwright_Method': 'get_user_info',
-                                'use_url_crawl': True,
-                                'locator_dict': json.loads(self.json_data)[url],
-                                })
+            yield Request(
+                    url=url, callback=self.parse,
+                    meta={'PWDownloaderMiddleware': True,
+                          'Playwright_Headless': True,
+                          'Playwright_Method': 'get_user_info',
+                          'use_url_crawl': True,
+                          'locator_dict': json.loads(self.json_data)[url],
+                          }
+            )
 
-    def parse(self, response):
-        from ..items import User, UserItem
-
+    def parse(self, response, **kwargs):
         # 抓取数据
         for user_data in json.loads(response.body)['res']:
             # 创建 User 对象

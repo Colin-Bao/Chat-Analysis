@@ -2,7 +2,6 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-import time
 
 import logging
 
@@ -10,7 +9,6 @@ from datetime import datetime
 import json
 from scrapy import signals
 # useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
 from scrapy.http import Response, Request, HtmlResponse
 from playwright.async_api import async_playwright, Page, Locator
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError, Error as PlaywrightError
@@ -191,7 +189,7 @@ class PWDownloaderMiddleware:
                                               'website': request.url})  # 增加需要的信息
         return user_dict_list
 
-    async def get_user_info(self, request, page: Page, debug_batch: int = 5) -> {}:
+    async def get_user_info(self, request, page: Page, debug_batch: int = 1000) -> {}:
         """
         获取用户信息
         :param debug_batch: 用于小批量调试
@@ -302,7 +300,11 @@ class PWDownloaderMiddleware:
             # 启动浏览器
             playwright = await async_playwright().start()
             browser = await playwright.chromium.launch(headless=request.meta.get('Playwright_Headless'),
-                                                       # args=['--ignore-gpu-blacklist', '--enable-gpu-rasterization']
+                                                       args=[
+                                                               '--disable-gpu',
+                                                               # '--enable-gpu',  #
+                                                               '--disable-software-rasterizer',
+                                                       ]
                                                        )
             page = await browser.new_page()
             # 禁用图片

@@ -25,7 +25,7 @@ class UserPipeline:
 
     def open_spider(self, spider):
         # 创建数据库连接，这里假设你的数据库名是mydatabase，用户名是myuser，密码是mypassword
-        self.engine = create_engine('mysql+mysqlconnector://user:1111@localhost/duopei?charset=utf8mb4')
+        self.engine = create_engine('mysql+mysqlconnector://user:1111@192.168.2.13/duopei?charset=utf8mb4')
         self.Session = sessionmaker(bind=self.engine)
 
         # 创建数据表，如果不存在的话
@@ -147,7 +147,6 @@ class UserPipeline:
 
             # 数据清洗
             user = clean_data(user)
-            print(user.Name)
 
             # 更新到数据库
             session.merge(user)
