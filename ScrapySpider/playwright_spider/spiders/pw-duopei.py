@@ -21,7 +21,7 @@ class DuopeiSpider(Spider):
             self.json_data = file.read()
         self.start_urls = list(json.loads(self.json_data).keys())
 
-        # self.start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
+        self.start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
 
         # Set default meta values
         self.meta_dict = {
@@ -47,12 +47,12 @@ class DuopeiSpider(Spider):
             # 创建 User 对象
             if self.meta_dict['crawl_mode_append']:
                 user = UserAppend(**user_data)
-                user.id = user.create_id()
+                user.append_id = user.create_append_id()
             else:
                 user = UserUpdate(**user_data)
 
             # 生成 employee_id
-            user.employee_id = user.create_id()
+            user.employee_id = user.create_employee_id()
 
             # 创建 Item 对象
             item = UserItem(user, self.meta_dict['crawl_mode_append'])

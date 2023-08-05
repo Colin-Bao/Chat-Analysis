@@ -153,22 +153,22 @@ class UserPipeline:
             if crawl_mode_append:
                 user_append = user_orm
                 # 检查UserUpdate表中是否存在对应的employee_id
-                user_update = session.query(user_append).filter_by(employee_id=user_append.employee_id).first()
-
+                user_update = session.query(UserUpdate).filter_by(employee_id=user_append.employee_id).first()
                 # 如果不存在，那么创建一个新的UserUpdate对象
                 if user_update is None:
                     # 假设 user_append 是一个 UserAppend 实例
                     user_append_dict = user_append.__dict__
 
-                    # 移除不必要的元素，例如 SQLAlchemy 的 _sa_instance_state 以及 'id'
-                    for key in ['_sa_instance_state', 'id']:
+                    # 移除不必要的元素，例如 SQLAlchemy 的 _sa_instance_state 以及 'append_id'
+                    for key in ['_sa_instance_state', 'append_id']:
                         user_append_dict.pop(key, None)
 
                     # 使用字典解包创建 UserUpdate 实例
                     user_update = UserUpdate(**user_append_dict)
 
                     # 在父表中创建外键关系
-                    session.merge(user_update)
+                    session.add(user_update)
+                    session.commit()
 
             # 更新到数据库
             session.merge(user_orm)

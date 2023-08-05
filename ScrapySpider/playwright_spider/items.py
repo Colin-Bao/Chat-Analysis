@@ -5,17 +5,21 @@
 
 from scrapy.item import Item, Field
 from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 import hashlib
 
 Base = declarative_base()
 
 
-class UserUpdate(Base):
-    #
-    __tablename__ = 'user_update'
+class UserBase(Base):
+    __abstract__ = True  # Declare this class as abstract
 
-    #
+    # 表名
+    # @declared_attr
+    # def __tablename__(self):
+    #     return self.__name__.lower()  # Use the class name as table name
+
+    # 用户ID
     employee_id = Column(String(200), primary_key=True)
 
     # 数据类型用于数据验证和数据库映射
@@ -44,7 +48,7 @@ class UserUpdate(Base):
     AvatarImg = Column(String(200), default=None)
     Profile = Column(String(200), default=None)
 
-    #
+    # 数据库记录
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
@@ -55,19 +59,24 @@ class UserUpdate(Base):
         return hash_object.hexdigest()
 
 
-class UserAppend(UserUpdate):
+class UserUpdate(UserBase):
+    #
+    __tablename__ = 'user_update'
+
+
+class UserAppend(UserBase):
     """
     新增用户信息
     """
     __tablename__ = 'user_append'
 
     # 主键和外键
-    id = Column(String(200), primary_key=True)
+    append_id = Column(String(200), primary_key=True)
     employee_id = Column(String(200), ForeignKey('user_update.employee_id'))
 
-    def create_id(self):
+    def create_append_id(self):
         hash_object = hashlib.sha256()
-        combined_data = str(self.created_at) + self.company + self.Name
+        combined_data = str(self.crawl_date_2) + self.company + self.Name
         hash_object.update(combined_data.encode('utf-8'))
         return hash_object.hexdigest()
 
