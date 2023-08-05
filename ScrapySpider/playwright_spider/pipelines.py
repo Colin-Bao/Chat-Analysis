@@ -10,7 +10,7 @@ import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .items import User
+from .items import UserUpdate, UserAppend
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -24,22 +24,22 @@ class UserPipeline:
         self.Session = None
 
     def open_spider(self, spider):
-        # 创建数据库连接，这里假设你的数据库名是mydatabase，用户名是myuser，密码是mypassword
+        # 创建数据库连接
         self.engine = create_engine('mysql+mysqlconnector://user:1111@192.168.2.13/duopei?charset=utf8mb4')
         self.Session = sessionmaker(bind=self.engine)
 
         # 创建数据表，如果不存在的话
-        User.__table__.create(bind=self.engine, checkfirst=True)
-        # Base.metadata.create_all(self.engine)
+        UserUpdate.__table__.create(bind=self.engine, checkfirst=True)
+        UserAppend.__table__.create(bind=self.engine, checkfirst=True)
 
     def process_item(self, item, spider):
         """
         在 process_item 方法中逐条处理数据可能更有效。这也可以让你更早地发现并处理潜在的数据问题。
         """
 
-        def clean_data_df(userobj: User):
+        def clean_data_df(userobj):
             # 将User对象的属性转换为字典
-            user_dict = {column.name: getattr(user, column.name) for column in userobj.__table__.columns}
+            user_dict = {column.name: getattr(user_orm, column.name) for column in userobj.__table__.columns}
 
             # 创建一个Dataframe，需要将字典转换为列表的形式，因为Dataframe期望的是一个二维的数据结构
             df = pd.DataFrame([user_dict])
@@ -127,7 +127,7 @@ class UserPipeline:
 
             return df
 
-        def clean_data(date: User):
+        def clean_data(date):
             # 去除换行、回车、空格
             date.Name = date.Name.strip()
             date.TagSep = re.sub('\s+|\n', '', date.TagSep) if date.TagSep else None
@@ -143,21 +143,43 @@ class UserPipeline:
 
         try:
             # 将item转换为User对象并添加到session
-            user = item['model']
+            user_orm = item['model']
+            crawl_mode_append = item['crawl_mode_append']
 
             # 数据清洗
-            user = clean_data(user)
+            user_orm = clean_data(user_orm)
+
+            # 外键约束
+            if crawl_mode_append:
+                user_append = user_orm
+                # 检查UserUpdate表中是否存在对应的employee_id
+                user_update = session.query(user_append).filter_by(employee_id=user_append.employee_id).first()
+
+                # 如果不存在，那么创建一个新的UserUpdate对象
+                if user_update is None:
+                    # 假设 user_append 是一个 UserAppend 实例
+                    user_append_dict = user_append.__dict__
+
+                    # 移除不必要的元素，例如 SQLAlchemy 的 _sa_instance_state 以及 'id'
+                    for key in ['_sa_instance_state', 'id']:
+                        user_append_dict.pop(key, None)
+
+                    # 使用字典解包创建 UserUpdate 实例
+                    user_update = UserUpdate(**user_append_dict)
+
+                    # 在父表中创建外键关系
+                    session.merge(user_update)
 
             # 更新到数据库
-            session.merge(user)
+            session.merge(user_orm)
 
             # 提交session
             session.commit()
 
-        except:
+        except Exception as e:
             # 如果发生错误，回滚session
             session.rollback()
-            raise
+            raise e
 
         finally:
             # 不论是否发生错误，最后都要关闭session

@@ -248,7 +248,7 @@ class PWDownloaderMiddleware:
         for i in tqdm(range(elements_count)[:min(debug_batch, elements_count)]):
             # 用于存储URL的字典
             user_dict = {'rank': i, 'crawl_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                         'audio_url': '', 'homepage': '', }
+                         'audio_url': None, 'homepage': None, }
 
             # 获取单个元素
             element = click_locators.nth(i)
@@ -307,6 +307,7 @@ class PWDownloaderMiddleware:
                                                        ]
                                                        )
             page = await browser.new_page()
+            
             # 禁用图片
             await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
             await page.goto(request.url)
