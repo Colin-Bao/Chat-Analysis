@@ -2,7 +2,6 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-import logging
 
 # useful for handling different item types with a single interface
 
@@ -145,6 +144,7 @@ class UserPipeline:
         # 将item转换为User对象并添加到session
         user_orm = item['model']
         crawl_mode_append = item['crawl_mode_append']
+
         # 数据清洗
         user_orm = clean_data(user_orm)
 

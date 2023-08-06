@@ -46,7 +46,7 @@ class DuopeiSpider(Spider):
         for user_data in json.loads(response.body)['res']:
 
             # 创建 User 对象
-            if self.meta_dict['crawl_mode_append']:
+            if self.meta_dict['crawl_mode_append'] == 'true':
                 user = UserAppend(**user_data)
                 user.append_id = user.create_append_id()
             else:
