@@ -7,6 +7,7 @@ from scrapy.item import Item, Field
 from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 import hashlib
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -63,12 +64,18 @@ class UserUpdate(UserBase):
     #
     __tablename__ = 'user_update'
 
+    # 依赖关系
+    # children = relationship("UserAppend", back_populates="parent")
+
 
 class UserAppend(UserBase):
     """
     新增用户信息
     """
     __tablename__ = 'user_append'
+
+    # 依赖关系
+    # parent = relationship("UserUpdate", back_populates="children")
 
     # 主键和外键
     append_id = Column(String(200), primary_key=True)

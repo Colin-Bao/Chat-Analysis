@@ -2,6 +2,9 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os
+
+from pathlib import Path
 
 import logging
 
@@ -15,6 +18,7 @@ from playwright.async_api import TimeoutError as PlaywrightTimeoutError, Error a
 from tqdm import tqdm
 
 
+# noinspection PyMethodMayBeStatic
 class TutorialSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
@@ -189,7 +193,7 @@ class PWDownloaderMiddleware:
                                               'website': request.url})  # 增加需要的信息
         return user_dict_list
 
-    async def get_user_info(self, request, page: Page, debug_batch: int = 1000) -> {}:
+    async def get_user_info(self, request, page: Page, debug_batch: int = 5) -> {}:
         """
         获取用户信息
         :param debug_batch: 用于小批量调试
@@ -225,7 +229,7 @@ class PWDownloaderMiddleware:
         # 按需调用url爬虫
         if request.meta.get('use_url_crawl', False):
             url_dict_list = await self.get_user_urls(request, page, debug_batch)
-            assert len(url_dict_list) == len(user_dict_list)  # TODO 由于使用了url爬虫，不一定能对上
+            assert len(url_dict_list) == len(user_dict_list)  # 保证数量一致
             return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}
         else:
             return {'res': user_dict_list}
@@ -239,10 +243,14 @@ class PWDownloaderMiddleware:
         """
 
         # 设置超时
-        page.set_default_timeout(3000)
+        # page.set_default_timeout(2000)
 
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
+
+        # 定义截图路径
+        screenshot_dir = Path(__file__).resolve().parent / 'screenshot' / f"{el_dict['company']}"
+        os.makedirs(screenshot_dir, exist_ok=True)
 
         # 移除阻碍元素
         await self.remove_node_by_selector(page, el_dict.get('remove_other_selector', None))
@@ -256,29 +264,44 @@ class PWDownloaderMiddleware:
         user_dict_list = []
 
         for i in tqdm(range(elements_count)[:min(debug_batch, elements_count)]):
-            # 用于存储URL的字典
-            user_dict = {'rank': i, 'crawl_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                         'audio_url': None, 'homepage': None, }
-
-            # 定位当前元素
-            element = click_locators.nth(i)
-            # await element.highlight()
+            # 用于存储信息的字典
+            user_dict = {'rank': i,
+                         'crawl_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                         'audio_url': None,
+                         'homepage': None, }
 
             try:
-                # 将元素滚动到视野中
-                await element.scroll_into_view_if_needed()
+                # ---------------------------------- 定位元素 ---------------------------------- #
+                try:
+                    # 移除阻碍元素
+                    await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
 
-                # 移除阻碍元素
-                await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
+                    # 定位当前元素
+                    element = click_locators.nth(i)
+                    await element.highlight()
+
+                    # 将元素滚动到视野中
+                    await element.scroll_into_view_if_needed()
+                    # 记录
+                    await page.screenshot(path=screenshot_dir / f'{i}.png')
+                    await element.wait_for(state='visible', timeout=1000)  # 等待元素稳定
+
+
+                except Exception as e:
+                    # 捕获异常截图
+                    await page.screenshot(path=screenshot_dir / f'{i}_locater.png', )
+                    raise Exception(f"元素定位错误 {e}") from e
 
                 # ---------------------------------- 解析音频 ---------------------------------- #
                 try:
                     audio_locator = element.locator(el_dict['user_audio_selector'])
                     await audio_locator.highlight()
-                    async with page.expect_response(lambda response: 'mp3' in response.url, timeout=5000) as response_info:
-                        await audio_locator.click()
+                    async with page.expect_response(lambda response: 'mp3' in response.url, timeout=1500) as response_info:
+                        await audio_locator.click(timeout=1000)
                     user_dict['audio_url'] = (await response_info.value).url
                 except Exception as e:
+                    # 捕获异常截图
+                    # await page.screenshot(path=screenshot_dir / f'{i}_audio.png')
                     raise Exception(f"解析音频错误 {e}") from e
 
                 # ---------------------------------- 解析url跳转 ---------------------------------- #
@@ -287,21 +310,20 @@ class PWDownloaderMiddleware:
                     await element.click()
                     await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
                     user_dict['homepage'] = page.url
+                    await page.go_back()  # 回到原始页面
                 except Exception as e:
+                    # 捕获异常截图
+                    # await page.screenshot(path=screenshot_dir / f'{i}_url.png')
                     raise Exception(f"解析url跳转错误 {e}") from e
 
 
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
-                # TODO 捕获异常截图 await page.screenshot(path=f'{i}.png')
-                logging.getLogger('get_user_urls').error(f'[{page.url}] {e}')
+                logging.getLogger('get_user_urls').error(f"[{el_dict['company']} {e}")
                 continue
 
             finally:
                 # 任何失败都添加
                 user_dict_list.append(user_dict)
-                # 回到原始页面
-                if 'detail' in page.url:
-                    await page.go_back()
 
         return user_dict_list
 
@@ -320,7 +342,7 @@ class PWDownloaderMiddleware:
                                                        ]
                                                        )
             page = await browser.new_page()
-            
+
             # 禁用图片
             await page.route('**/*', lambda route: route.abort() if route.request.resource_type == 'image' else route.continue_())
             await page.goto(request.url)

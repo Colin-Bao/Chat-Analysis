@@ -2,6 +2,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+import logging
 
 # useful for handling different item types with a single interface
 
@@ -10,7 +11,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import copy
 from .items import UserUpdate, UserAppend
-
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class UserPipeline:
@@ -142,49 +142,53 @@ class UserPipeline:
         # 创建新的session
         session = self.Session()
 
-        try:
-            # 将item转换为User对象并添加到session
-            user_orm = item['model']
-            crawl_mode_append = item['crawl_mode_append']
+        # 将item转换为User对象并添加到session
+        user_orm = item['model']
+        crawl_mode_append = item['crawl_mode_append']
+        # 数据清洗
+        user_orm = clean_data(user_orm)
 
-            # 数据清洗
-            user_orm = clean_data(user_orm)
-
+        # 追加模式
+        if crawl_mode_append == 'true':
+            user_append = copy.deepcopy(user_orm)
             # 外键约束
-            if crawl_mode_append:
-                user_append = copy.deepcopy(user_orm)
-                # 检查UserUpdate表中是否存在对应的employee_id
-                user_update = session.query(UserUpdate).filter_by(employee_id=user_append.employee_id).first()
-                # 如果不存在，那么创建一个新的UserUpdate对象
-                if user_update is None:
-                    # 假设 user_append 是一个 UserAppend 实例
-                    user_append_dict = user_append.__dict__
+            # 检查UserUpdate表中是否存在对应的employee_id
+            user_update = session.query(UserUpdate).filter_by(employee_id=user_append.employee_id).first()
+            # 如果不存在，那么创建一个新的UserUpdate对象
+            if user_update is None:
+                # 假设 user_append 是一个 UserAppend 实例
+                user_append_dict = user_append.__dict__
 
-                    # 移除不必要的元素，例如 SQLAlchemy 的 _sa_instance_state 以及 'append_id'
-                    for key in ['_sa_instance_state', 'append_id']:
-                        user_append_dict.pop(key, None)
+                # 移除不必要的元素，例如 SQLAlchemy 的 _sa_instance_state 以及 'append_id'
+                for key in ['_sa_instance_state', 'append_id']:
+                    user_append_dict.pop(key, None)
 
-                    # 使用字典解包创建 UserUpdate 实例
-                    user_update = UserUpdate(**user_append_dict)
+                # 使用字典解包创建 UserUpdate 实例
+                user_update = UserUpdate(**user_append_dict)
 
-                    # 在父表中创建外键关系
-                    session.add(user_update)
-                    session.commit()
+                # 在父表中创建外键关系
+                session.add(user_update)
+                session.commit()
+            else:
+                session.add(user_orm)
+                session.commit()
 
-            # 更新到数据库
-            session.merge(user_orm)
+        # 更新模式
+        elif crawl_mode_append == 'false':
+            existing_user = session.query(UserUpdate).filter_by(employee_id=user_orm.employee_id).one_or_none()
+            # 存在employee_id 则更新
+            if existing_user:
+                existing_user.homepage = user_orm.homepage if user_orm.homepage else existing_user.homepage
+                existing_user.audio_url = user_orm.audio_url if user_orm.audio_url else existing_user.homepage
+                existing_user.crawl_date = user_orm.crawl_date
+                existing_user.crawl_date_2 = user_orm.crawl_date_2
+                session.commit()
+            else:
+                session.add(user_orm)
+                session.commit()
+        # 关闭session
+        session.close()
 
-            # 提交session
-            session.commit()
-
-        except Exception as e:
-            # 如果发生错误，回滚session
-            session.rollback()
-            raise e
-
-        finally:
-            # 不论是否发生错误，最后都要关闭session
-            session.close()
         return item
 
     def close_spider(self, spider):

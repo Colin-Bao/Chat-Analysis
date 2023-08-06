@@ -8,7 +8,7 @@ class DuopeiSpider(Spider):
     name = "duopei"
     custom_settings = {
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-            "CONCURRENT_REQUESTS": 20,
+            "CONCURRENT_REQUESTS": 10,
             "LOG_LEVEL": "INFO",
             "TELNETCONSOLE_ENABLED": False,
             "COOKIES_ENABLED": False,
@@ -22,7 +22,7 @@ class DuopeiSpider(Spider):
             self.json_data = file.read()
         self.start_urls = list(json.loads(self.json_data).keys())
 
-        # self.start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
+        self.start_urls = ['http://0oofebivlh.duopei-m.manongnet.cn']  # 新增
 
         # Set default meta values
         self.meta_dict = {

@@ -1,12 +1,21 @@
-def min_moves_to_sort(arr):
-    old_arr = arr.copy()
-    arr.sort()
-    moves = 0
-    for i, _ in enumerate(arr):
-        if arr[i] != old_arr[i]:
-            moves += 1
-    return moves
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+
+Base = declarative_base()
 
 
-servers = [2, 3, 1, 4, 6, 5, 7, 10, 12, 11, 9, 16, 14]
-print(min_moves_to_sort(servers))
+class UserBase(Base):
+    __abstract__ = True
+    id = Column(Integer, primary_key=True)
+
+
+class UserUpdate(Base):
+    __tablename__ = 'user_update'
+    children = relationship("UserAppend", back_populates="parent")
+
+
+class UserAppend(Base):
+    __tablename__ = 'user_append'
+    parent_id = Column(Integer, ForeignKey('user_update.id'))
+    parent = relationship("UserUpdate", back_populates="children")
