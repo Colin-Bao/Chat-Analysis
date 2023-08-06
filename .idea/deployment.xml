@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="nizai9a@140.250.51.124:33322 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="nizai9a@140.250.51.124" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="nizai9a@140.250.51.124:33322 password">
+      <paths name="nizai9a@140.250.51.124">
         <serverdata>
           <mappings>
             <mapping deploy="/Chat-Analysis" local="$PROJECT_DIR$" web="/" />

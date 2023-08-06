@@ -5,7 +5,7 @@
       <excludePattern pattern="*/snapshots" />
       <excludePattern pattern="*/user_daily_data" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.10.0 (sftp://nizai9a@140.250.51.124:33322/home/nizai9a/miniconda3/envs/PlaySpider/bin/python)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="PlaySpider@140.250.51.124" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Chat-Web" />
   </component>

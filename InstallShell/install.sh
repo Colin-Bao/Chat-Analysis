@@ -32,6 +32,7 @@ EXIT
 # 安装miniconda
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
+
 # 安装软件包
 conda create -n PlaySpider python==3.10
 conda activate PlaySpider
