@@ -8,8 +8,10 @@ class DuopeiSpider(Spider):
     name = "duopei"
     custom_settings = {
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-            "CONCURRENT_REQUESTS": 4,
+            "CONCURRENT_REQUESTS": 20,
             "LOG_LEVEL": "INFO",
+            "TELNETCONSOLE_ENABLED": False,
+            "COOKIES_ENABLED": False,
     }
 
     def __init__(self, **kwargs):

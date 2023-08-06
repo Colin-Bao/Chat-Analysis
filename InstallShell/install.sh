@@ -44,3 +44,7 @@ playwright install
 sudo mkdir /home/nizai9a/PycharmProjects
 sudo chmod -R 777 /home/nizai9a/PycharmProjects
 
+# CPU性能
+sudo apt install cpufrequtils
+#for i in $(seq 0 $(($(nproc) - 1))); do
+#    sudo cpufreq-set -c $i -g performance;

@@ -3,9 +3,8 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-import numpy as np
 # useful for handling different item types with a single interface
-import pandas as pd
+
 import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -18,14 +17,14 @@ class UserPipeline:
     """
     收集所有用户的数据，并创建DataFrame
     """
-    
+
     def __init__(self):
         self.engine = None
         self.Session = None
 
     def open_spider(self, spider):
         # 创建数据库连接
-        self.engine = create_engine('mysql+mysqlconnector://colin:1111@140.250.51.124/duopei?charset=utf8mb4')
+        self.engine = create_engine('mysql+mysqlconnector://colin:^Q}spft2L0bmX^+=X=v0@140.250.51.124/duopei?charset=utf8mb4')
         self.Session = sessionmaker(bind=self.engine)
 
         # 创建数据表，如果不存在的话
@@ -38,6 +37,8 @@ class UserPipeline:
         """
 
         def clean_data_df(userobj):
+            import numpy as np
+            import pandas as pd
             # 将User对象的属性转换为字典
             user_dict = {column.name: getattr(user_orm, column.name) for column in userobj.__table__.columns}
 

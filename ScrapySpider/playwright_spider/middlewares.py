@@ -231,6 +231,16 @@ class PWDownloaderMiddleware:
             return {'res': user_dict_list}
 
     async def get_user_urls(self, request, page: Page, debug_batch) -> [{}, ...]:
+        """
+        复杂的url爬虫，经常遇到网络响应问题
+        :param request:
+        :param page:
+        :param debug_batch:调试数量
+        """
+
+        # 设置超时
+        page.set_default_timeout(3000)
+
         # 定位器字典
         el_dict = request.meta.get('locator_dict')
 
@@ -250,7 +260,7 @@ class PWDownloaderMiddleware:
             user_dict = {'rank': i, 'crawl_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                          'audio_url': None, 'homepage': None, }
 
-            # 获取单个元素
+            # 定位当前元素
             element = click_locators.nth(i)
             # await element.highlight()
 
@@ -261,27 +271,29 @@ class PWDownloaderMiddleware:
                 # 移除阻碍元素
                 await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
 
-                # 解析音频
-                audio_locator = element.locator(el_dict['user_audio_selector'])
-                await audio_locator.highlight()
-                async with page.expect_response(lambda response: 'mp3' in response.url, timeout=1000) as response_info:
-                    await audio_locator.click()
-
-                # 解析url跳转
-                await element.highlight()
-                await element.click()
-                await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
-
-                # 获取并打印新页面的URL
-                if 'detail' in page.url:
-                    user_dict['homepage'] = page.url
+                # ---------------------------------- 解析音频 ---------------------------------- #
+                try:
+                    audio_locator = element.locator(el_dict['user_audio_selector'])
+                    await audio_locator.highlight()
+                    async with page.expect_response(lambda response: 'mp3' in response.url, timeout=5000) as response_info:
+                        await audio_locator.click()
                     user_dict['audio_url'] = (await response_info.value).url
-                else:
-                    raise Exception('解析失败')
+                except Exception as e:
+                    raise Exception(f"解析音频错误 {e}") from e
+
+                # ---------------------------------- 解析url跳转 ---------------------------------- #
+                try:
+                    await element.highlight()
+                    await element.click()
+                    await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
+                    user_dict['homepage'] = page.url
+                except Exception as e:
+                    raise Exception(f"解析url跳转错误 {e}") from e
+
 
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
                 # TODO 捕获异常截图 await page.screenshot(path=f'{i}.png')
-                logging.getLogger('get_user_urls').error(f'获取用户URL失败：{e}')
+                logging.getLogger('get_user_urls').error(f'[{page.url}] {e}')
                 continue
 
             finally:
@@ -297,6 +309,7 @@ class PWDownloaderMiddleware:
         # Called for each request that goes through the downloader
         # middleware.
         if request.meta.get('PWDownloaderMiddleware') and not request.meta.get('handled'):
+            # logging.getLogger('process_request').info(f"使用中间件：{request.url}")
             # 启动浏览器
             playwright = await async_playwright().start()
             browser = await playwright.chromium.launch(headless=request.meta.get('Playwright_Headless'),
