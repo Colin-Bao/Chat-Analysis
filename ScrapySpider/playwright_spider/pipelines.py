@@ -18,14 +18,14 @@ class UserPipeline:
     """
     收集所有用户的数据，并创建DataFrame
     """
-
+    
     def __init__(self):
         self.engine = None
         self.Session = None
 
     def open_spider(self, spider):
         # 创建数据库连接
-        self.engine = create_engine('mysql+mysqlconnector://user:1111@192.168.2.13/duopei?charset=utf8mb4')
+        self.engine = create_engine('mysql+mysqlconnector://colin:1111@140.250.51.124/duopei?charset=utf8mb4')
         self.Session = sessionmaker(bind=self.engine)
 
         # 创建数据表，如果不存在的话

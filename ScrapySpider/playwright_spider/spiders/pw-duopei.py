@@ -4,7 +4,6 @@ from scrapy import Spider
 from scrapy.http import Request
 from ..items import UserUpdate, UserAppend, UserItem
 
-
 class DuopeiSpider(Spider):
     name = "duopei"
     custom_settings = {

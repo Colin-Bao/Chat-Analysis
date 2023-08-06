@@ -36,10 +36,11 @@ bash Miniconda3-latest-Linux-x86_64.sh
 # 安装软件包
 conda create -n PlaySpider python==3.10
 conda activate PlaySpider
-conda install -c conda-forge scrapy
+conda install -c conda-forge scrapy numpy pandas sqlalchemy
 pip install playwright mysql-connector-python -i https://pypi.tuna.tsinghua.edu.cn/simple
 playwright install
 
 #
 sudo mkdir /home/nizai9a/PycharmProjects
 sudo chmod -R 777 /home/nizai9a/PycharmProjects
+
