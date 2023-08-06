@@ -21,7 +21,7 @@ class DuopeiSpider(Spider):
             self.json_data = file.read()
         self.start_urls = list(json.loads(self.json_data).keys())
 
-        self.start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
+        # self.start_urls = ['http://exjomkwuav.duopei-m.manongnet.cn']  # 新增
 
         # Set default meta values
         self.meta_dict = {

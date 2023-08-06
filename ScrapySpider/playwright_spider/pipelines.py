@@ -9,7 +9,7 @@ import pandas as pd
 import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
+import copy
 from .items import UserUpdate, UserAppend
 
 
@@ -151,7 +151,7 @@ class UserPipeline:
 
             # 外键约束
             if crawl_mode_append:
-                user_append = user_orm
+                user_append = copy.deepcopy(user_orm)
                 # 检查UserUpdate表中是否存在对应的employee_id
                 user_update = session.query(UserUpdate).filter_by(employee_id=user_append.employee_id).first()
                 # 如果不存在，那么创建一个新的UserUpdate对象
