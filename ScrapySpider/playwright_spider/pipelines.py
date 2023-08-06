@@ -186,6 +186,7 @@ class UserPipeline:
             else:
                 session.add(user_orm)
                 session.commit()
+                
         # 关闭session
         session.close()
 

@@ -193,7 +193,7 @@ class PWDownloaderMiddleware:
                                               'website': request.url})  # 增加需要的信息
         return user_dict_list
 
-    async def get_user_info(self, request, page: Page, debug_batch: int = 5) -> {}:
+    async def get_user_info(self, request, page: Page, debug_batch: int = 1000) -> {}:
         """
         获取用户信息
         :param debug_batch: 用于小批量调试
@@ -315,7 +315,6 @@ class PWDownloaderMiddleware:
                     # 捕获异常截图
                     # await page.screenshot(path=screenshot_dir / f'{i}_url.png')
                     raise Exception(f"解析url跳转错误 {e}") from e
-
 
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
                 logging.getLogger('get_user_urls').error(f"[{el_dict['company']} {e}")

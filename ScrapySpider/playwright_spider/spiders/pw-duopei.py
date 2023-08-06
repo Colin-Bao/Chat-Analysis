@@ -4,6 +4,7 @@ from scrapy import Spider
 from scrapy.http import Request
 from ..items import UserUpdate, UserAppend, UserItem
 
+
 class DuopeiSpider(Spider):
     name = "duopei"
     custom_settings = {
@@ -22,7 +23,7 @@ class DuopeiSpider(Spider):
             self.json_data = file.read()
         self.start_urls = list(json.loads(self.json_data).keys())
 
-        self.start_urls = ['http://0oofebivlh.duopei-m.manongnet.cn']  # 新增
+        # self.start_urls = ['http://0oofebivlh.duopei-m.manongnet.cn']  # 新增
 
         # Set default meta values
         self.meta_dict = {
@@ -44,7 +45,6 @@ class DuopeiSpider(Spider):
     def parse(self, response, **kwargs):
         # 抓取数据
         for user_data in json.loads(response.body)['res']:
-
             # 创建 User 对象
             if self.meta_dict['crawl_mode_append'] == 'true':
                 user = UserAppend(**user_data)
