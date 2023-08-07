@@ -27,6 +27,7 @@ sudo mysql -u root -p
 CREATE USER 'colin'@'%' IDENTIFIED BY '^Q}spft2L0bmX^+=X=v0'
 GRANT ALL ON *.* TO 'colin'@'%'
 FLUSH PRIVILEGES
+mysql+mysqldb://colin:^Q}spft2L0bmX^+=X=v0@140.250.51.124:3306]/airflow_db
 EXIT
 
 # 安装miniconda
@@ -48,3 +49,43 @@ sudo chmod -R 777 /home/nizai9a/PycharmProjects
 sudo apt install cpufrequtils
 #for i in $(seq 0 $(($(nproc) - 1))); do
 #    sudo cpufreq-set -c $i -g performance;
+
+nohup airflow webserver -p 8000 >/home/webserver.log 2>&1 &
+nohup airflow scheduler >/home/scheduler.log 2>&1 &
+
+ps aux | grep "airflow scheduler"
+ps aux | grep "airflow webserver"
+
+
+pkill -9 -f "airflow scheduler"
+pkill -9 -f "airflow webserver"
+lsof -i :8793
+lsof -i :8000
+
+
+
+kill -9 1089951
+
+#
+ln -s /home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/duopei_dags /home/nizai9a/airflow/dags
+
+
+
+# 运行airflow
+conda activate PlaySpider
+airflow db init
+airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
+/home/nizai9a/miniconda3/envs/PlaySpider/bin/airflow scheduler
+/home/nizai9a/miniconda3/envs/PlaySpider/bin/airflow webserver -p 8000
+
+
+
+sudo nano /etc/systemd/system/airflow-webserver.service
+sudo systemctl start airflow-webserver
+sudo systemctl enable airflow-webserver
+sudo systemctl status airflow-webserver
+journalctl -u airflow-webserver.service -f
+
+
+sudo systemctl stop airflow-webserver airflow-scheduler
+sudo systemctl start airflow-webserver airflow-scheduler

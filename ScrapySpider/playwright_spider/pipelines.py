@@ -132,6 +132,7 @@ class UserPipeline:
             date.Name = date.Name.strip()
             date.TagSep = re.sub('\s+|\n', '', date.TagSep) if date.TagSep else None
             date.Tag = re.sub('\s+|\n', '', date.Tag) if date.Tag else None
+            date.Tag = date.Tag if date.Tag else date.TagSep
 
             # 提取在线信息
             date.online_status = True if ('在线' in (date.Online or '')) or ((date.Online or '') != '') else False
@@ -149,11 +150,13 @@ class UserPipeline:
         user_orm = clean_data(user_orm)
 
         # 追加模式
-        if crawl_mode_append == 'true':
+        if crawl_mode_append == 'true' or crawl_mode_append:
             user_append = copy.deepcopy(user_orm)
+
             # 外键约束
             # 检查UserUpdate表中是否存在对应的employee_id
-            user_update = session.query(UserUpdate).filter_by(employee_id=user_append.employee_id).first()
+            user_update = session.query(UserUpdate).filter_by(employee_id=user_append.employee_id).one_or_none()
+
             # 如果不存在，那么创建一个新的UserUpdate对象
             if user_update is None:
                 # 假设 user_append 是一个 UserAppend 实例
@@ -169,12 +172,14 @@ class UserPipeline:
                 # 在父表中创建外键关系
                 session.add(user_update)
                 session.commit()
+
+            # 如果存在，直接添加
             else:
                 session.add(user_orm)
                 session.commit()
 
         # 更新模式
-        elif crawl_mode_append == 'false':
+        else:
             existing_user = session.query(UserUpdate).filter_by(employee_id=user_orm.employee_id).one_or_none()
             # 存在employee_id 则更新
             if existing_user:
@@ -186,7 +191,7 @@ class UserPipeline:
             else:
                 session.add(user_orm)
                 session.commit()
-                
+
         # 关闭session
         session.close()
 

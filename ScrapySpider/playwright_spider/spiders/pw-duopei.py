@@ -1,3 +1,5 @@
+import logging
+
 import json
 from pathlib import Path
 from scrapy import Spider
@@ -9,21 +11,21 @@ class DuopeiSpider(Spider):
     name = "duopei"
     custom_settings = {
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-            "CONCURRENT_REQUESTS": 10,
+            "CONCURRENT_REQUESTS": 1,
             "LOG_LEVEL": "INFO",
             "TELNETCONSOLE_ENABLED": False,
             "COOKIES_ENABLED": False,
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self, start_url: str = None, **kwargs):
         super(DuopeiSpider, self).__init__(**kwargs)
+
         # 读取定位器文件并创建start_urls列表
-        file_path = Path(__file__).resolve().parent.parent / 'data' / 'user_selector.json'
+        file_path = '/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/data/user_selector.json'
         with open(file_path, "r", encoding='utf-8') as file:
             self.json_data = file.read()
-        self.start_urls = list(json.loads(self.json_data).keys())
-
-        # self.start_urls = ['http://0oofebivlh.duopei-m.manongnet.cn']  # 新增
+        self.start_urls = [start_url]
+        # logging.getLogger('log').error(f'读取定位器文件并创建start_urls列表 {self.start_urls}')
 
         # Set default meta values
         self.meta_dict = {
@@ -33,6 +35,7 @@ class DuopeiSpider(Spider):
                 'use_url_crawl': False,
                 'crawl_mode_append': True
         }
+
         # Override default meta values with any parameters passed from the command line
         self.meta_dict.update(kwargs)
 
@@ -46,7 +49,7 @@ class DuopeiSpider(Spider):
         # 抓取数据
         for user_data in json.loads(response.body)['res']:
             # 创建 User 对象
-            if self.meta_dict['crawl_mode_append'] == 'true':
+            if self.meta_dict['crawl_mode_append'] == 'true' or self.meta_dict['crawl_mode_append']:
                 user = UserAppend(**user_data)
                 user.append_id = user.create_append_id()
             else:

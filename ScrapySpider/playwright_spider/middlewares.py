@@ -227,7 +227,7 @@ class PWDownloaderMiddleware:
         # logging.getLogger('常规爬虫').info(user_dict_list)
 
         # 按需调用url爬虫
-        if request.meta.get('use_url_crawl', False):
+        if request.meta.get('use_url_crawl', False) or request.meta.get('use_url_crawl', 'false') == 'true':
             url_dict_list = await self.get_user_urls(request, page, debug_batch)
             assert len(url_dict_list) == len(user_dict_list)  # 保证数量一致
             return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}

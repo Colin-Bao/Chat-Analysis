@@ -6,8 +6,8 @@
       <paths name="nizai9a@140.250.51.124">
         <serverdata>
           <mappings>
-            <mapping deploy="/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
-            <mapping deploy="/Chat-Web" local="$PROJECT_DIR$/../Chat-Web" web="/" />
+            <mapping deploy="PycharmProjects/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="PycharmProjects/Chat-Web" local="$PROJECT_DIR$/../Chat-Web" web="/" />
           </mappings>
         </serverdata>
       </paths>
