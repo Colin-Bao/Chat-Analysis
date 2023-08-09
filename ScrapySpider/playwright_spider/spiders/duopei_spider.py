@@ -48,7 +48,7 @@ class DuopeiSpider(Spider):
             print('----------------收到参数-----------------', self.start_urls)
             meta = {'locator_dict': json.loads(self.json_data)[url]}
             meta.update(self.meta_dict)
-            yield Request(url=url, callback=self.parse, meta=meta)
+            yield Request(url=url, callback=self.parse, meta=meta, errback=self.handle_error)
 
     def parse(self, response, **kwargs):
         # 抓取数据
@@ -69,7 +69,7 @@ class DuopeiSpider(Spider):
             # yield user 对象
             yield item
 
-    def handle_spider_error(self, failure, response, spider):  # noqa
+    def handle_error(self, failure):
         """
         handle_spider_error方法连接到spider_error信号。
         如果在parse方法或任何其他爬虫回调中引发异常，handle_spider_error将被调用，并传递一个failure对象，包含有关错误的详细信息。
@@ -77,7 +77,7 @@ class DuopeiSpider(Spider):
         :return:
         """
         # 处理请求错误
-        self.logger.error(f'Error occurred while processing {response.url}: {failure.value}')
+        self.logger.error(f'Error occurred while processing : {failure.value}')
 
         # 重新引发异常，使其向上抛出
         raise failure.value

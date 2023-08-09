@@ -88,7 +88,7 @@ class PWDownloaderMiddleware:
         :return:
         """
         while True:
-            await bottom_item_locator.last.scroll_into_view_if_needed()
+            await bottom_item_locator.last.scroll_into_view_if_needed(timeout=15000)
             if await finished_item_locator.count():
                 break
 
@@ -347,11 +347,16 @@ class PWDownloaderMiddleware:
             await page.goto(request.url)
 
             # 根据传入的方法不同执行不同的逻辑
-            res = await self.get_user_info(request, page)
+            try:
+                res = await self.get_user_info(request, page)
+            except Exception as e:
+                logging.getLogger('detail').error(f"获取用户信息错误 {e}")
+                raise e
+            finally:
+                # 标记已经处理过
+                await page.close()
+                request.meta['handled'] = True
 
-            # 标记已经处理过
-            await page.close()
-            request.meta['handled'] = True
             # logging.getLogger('detail').info(res)
             return HtmlResponse(url=request.url, body=json.dumps(res).encode('utf-8'), encoding='utf-8', request=request)
         else:
@@ -381,7 +386,7 @@ class PWDownloaderMiddleware:
         # - return None: continue processing this exception
         # - return a Response object: stops process_exception() chain
         # - return a Request object: stops process_exception() chain
-        pass
+        raise exception
 
     def spider_opened(self, spider):
         spider.logger.info(f"{spider.name} Spider opened Use {__class__.__name__}")

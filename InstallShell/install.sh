@@ -66,8 +66,9 @@ lsof -i :8000
 
 kill -9 1089951
 
+
 #
-ln -s /home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/duopei_dags /home/nizai9a/airflow/dags
+ln -s /home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/duopei_dags /home/nizai9a/airflow/dags
 
 pip install mysql-connector-python
 
