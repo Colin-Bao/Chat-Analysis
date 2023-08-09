@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
 # [START import_module]
 
 import pendulum
 
 from airflow.decorators import dag, task
-
-from airflow.operators.python import PythonOperator
 
 
 # [END import_module]
@@ -14,10 +14,12 @@ from airflow.operators.python import PythonOperator
 
 # [START instantiate_dag]
 @dag(
+        schedule="0 */1 * * *",
+        # dagrun_timeout=timedelta(minutes=2),
         start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Shanghai"),
         catchup=False,
-        tags=["duopei", "tset"],
-        max_active_tasks=10,  # 限制并发数
+        tags=["duopei", "test"],
+        max_active_tasks=4,  # 限制并发数
         max_active_runs=1  # 限制同时运行的实例数量
 )
 def duopei_test():
@@ -30,9 +32,18 @@ def duopei_test():
         print(url)
         return url
 
-    crawl_duopei.expand(url=select_urls())
+    @task
+    def crawl_complate(url):
+        print(url)
+        # return url
+
+    for i in range(1):
+        crawl_duopei(i)
+    # select_urls()
+    # s = crawl_duopei.expand(url=select_urls())
+    # crawl_complate(s)
+    # crawl_duopei("sss")
 
 
-load_tasks = []
 # [START dag_invocation]
 duopei_test()

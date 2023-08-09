@@ -9,7 +9,12 @@ import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import copy
-from .items import UserUpdate, UserAppend
+import sys
+import os
+
+sys.path.append(os.path.abspath('/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider'))
+from items import UserUpdate, UserAppend  # noqa
+
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class UserPipeline:

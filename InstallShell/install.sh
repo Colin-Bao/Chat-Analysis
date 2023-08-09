@@ -69,7 +69,7 @@ kill -9 1089951
 #
 ln -s /home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/duopei_dags /home/nizai9a/airflow/dags
 
-
+pip install mysql-connector-python
 
 # 运行airflow
 conda activate PlaySpider
@@ -78,14 +78,29 @@ airflow users  create --role Admin --username admin --email admin --firstname ad
 /home/nizai9a/miniconda3/envs/PlaySpider/bin/airflow scheduler
 /home/nizai9a/miniconda3/envs/PlaySpider/bin/airflow webserver -p 8000
 
-
-
 sudo nano /etc/systemd/system/airflow-webserver.service
 sudo systemctl start airflow-webserver
+sudo systemctl start airflow-scheduler
 sudo systemctl enable airflow-webserver
+sudo systemctl disable airflow-webserver airflow-scheduler
 sudo systemctl status airflow-webserver
 journalctl -u airflow-webserver.service -f
+journalctl -u airflow-scheduler.service -f
+sudo systemctl status airflow-scheduler
+sudo systemctl restart airflow-webserver airflow-scheduler
 
-
+# 重装
 sudo systemctl stop airflow-webserver airflow-scheduler
-sudo systemctl start airflow-webserver airflow-scheduler
+sudo systemctl restart mysql
+conda activate PlaySpider
+airflow db upgrade
+airflow db init
+airflow users  create --role Admin --username colin --email colin --firstname colin --lastname colin --password colin
+sudo systemctl restart airflow-webserver airflow-scheduler
+airflow scheduler
+airflow webserver
+
+# 使用代理
+airflow webserver -D
+airflow scheduler -D
+airflow celery worker -D

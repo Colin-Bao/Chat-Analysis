@@ -347,7 +347,7 @@ class PWDownloaderMiddleware:
             await page.goto(request.url)
 
             # 根据传入的方法不同执行不同的逻辑
-            res = await getattr(self, request.meta.get('Playwright_Method'))(request, page)
+            res = await self.get_user_info(request, page)
 
             # 标记已经处理过
             await page.close()
