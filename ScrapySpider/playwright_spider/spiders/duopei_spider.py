@@ -7,7 +7,7 @@ from scrapy.http import Request
 import sys
 import os
 
-sys.path.append(os.path.abspath('/Users/colin/Library/Mobile Documents/com~apple~CloudDocs/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider'))
+sys.path.append(os.path.abspath('/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider'))
 from items import UserUpdate, UserAppend, UserItem  # noqa
 
 

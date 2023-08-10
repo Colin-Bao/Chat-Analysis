@@ -88,7 +88,7 @@ class PWDownloaderMiddleware:
         :return:
         """
         while True:
-            await bottom_item_locator.last.scroll_into_view_if_needed(timeout=15000)
+            await bottom_item_locator.last.scroll_into_view_if_needed(timeout=10000)
             if await finished_item_locator.count():
                 break
 
@@ -285,7 +285,6 @@ class PWDownloaderMiddleware:
                     # 记录
                     await page.screenshot(path=screenshot_dir / f'{i}.png')
                     await element.wait_for(state='visible', timeout=1000)  # 等待元素稳定
-
 
                 except Exception as e:
                     # 捕获异常截图

@@ -11,11 +11,18 @@
       "AvatarImg": ".clerk-item__head img",
       "Name": ".name.text-ellipsis",
       "Age": ".sex-age",
+      "SexImg": null,
       "SexBg": ".sex-age",
       "Online": ".StatusEnum",
+      "Grade": null,
+      "GradeImg": null,
       "GradePrice": ".minPrice",
       "Service": ".status.text-ellipsis",
-      "TagSep": ".line2 "
+      "ServiceSep": null,
+      "Tag": null,
+      "TagSep": ".line2 ",
+      "Profile": null,
+      "Position": null
     },
     "user_info_type": {
       "Name": "category",
@@ -153,7 +160,7 @@
     "gift_wall_selector": ".row-item",
     "img_wall_selector": "div.top-info img"
   },
-  "http://xoddwpia4h.duopei-m.xiaoyemaovip.com": {
+  "http://bhrl3uc0hs.duopei-m.xiaoyemaovip.com": {
     "company": "夏日小野猫",
     "remove_other_selector": ".van-notice-bar, .fixed-top.align-center, .tabbar, .more-clerk",
     "remove_dialog_selector": ".van-overlay, .van-dialog",

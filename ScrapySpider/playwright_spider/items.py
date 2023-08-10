@@ -4,10 +4,9 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 
 from scrapy.item import Item, Field
-from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey, create_engine, event
+from sqlalchemy.orm import declarative_base, declared_attr, relationship, validates, object_session, sessionmaker
 import hashlib
-from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -21,12 +20,12 @@ class UserBase(Base):
     #     return self.__name__.lower()  # Use the class name as table name
 
     # 用户ID
-    employee_id = Column(String(200), primary_key=True)
+    employee_id = Column(String(200), primary_key=True, nullable=False)
 
     # 数据类型用于数据验证和数据库映射
-    Name = Column(Unicode(100, collation='utf8mb4_unicode_ci'), default=None)
+    Name = Column(Unicode(100, collation='utf8mb4_unicode_ci'))
     online_status = Column(Boolean, default=None)
-    company = Column(String(20), default=None)
+    company = Column(String(20))
     rank = Column(String(10), default=None)
     rank_2 = Column(String(10), default=None)
     website = Column(String(100), default=None)
@@ -65,7 +64,7 @@ class UserUpdate(UserBase):
     __tablename__ = 'user_update'
 
     # 依赖关系
-    # children = relationship("UserAppend", back_populates="parent")
+    children = relationship("UserAppend", back_populates="parent")
 
 
 class UserAppend(UserBase):
@@ -75,7 +74,7 @@ class UserAppend(UserBase):
     __tablename__ = 'user_append'
 
     # 依赖关系
-    # parent = relationship("UserUpdate", back_populates="children")
+    parent = relationship("UserUpdate", back_populates="children")
 
     # 主键和外键
     append_id = Column(String(200), primary_key=True)
@@ -100,3 +99,35 @@ class UserItem(Item):
         super().__init__()
         self['model'] = user
         self['crawl_mode_append'] = crawl_mode_append
+
+
+# 外键约束
+def before_insert_listener(mapper, connection, target):
+    # Check if the employee_id exists in the UserUpdate table
+    user_update_record = connection.scalar(
+            UserUpdate.__table__.select().where(UserUpdate.employee_id == target.employee_id)
+    )
+
+    # 新记录
+    data_to_insert = {key: value for key, value in target.__dict__.items() if key not in ('id', 'append_id', '_sa_instance_state')}
+
+    # If not, insert a new record into UserUpdate
+    if not user_update_record:
+        # Create a dictionary with all the fields from UserAppend, except the id
+        # Insert the new record into UserUpdate
+        connection.execute(UserUpdate.__table__.insert().values(**data_to_insert))
+
+    else:
+        # If exists, update the UserUpdate record with new data from UserAppend
+        connection.execute(
+                UserUpdate.__table__.update().where(UserUpdate.employee_id == target.employee_id).values(**data_to_insert)
+        )
+
+
+event.listen(UserAppend, 'before_insert', before_insert_listener)
+engine = create_engine('mysql+mysqlconnector://colin:^Q}spft2L0bmX^+=X=v0@140.250.51.124/duopei?charset=utf8mb4')  # Adjust the connection string
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Create tables
+Base.metadata.create_all(engine)

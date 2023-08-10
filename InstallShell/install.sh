@@ -46,9 +46,9 @@ sudo mkdir /home/nizai9a/PycharmProjects
 sudo chmod -R 777 /home/nizai9a/PycharmProjects
 
 # CPU性能
-sudo apt install cpufrequtils
-#for i in $(seq 0 $(($(nproc) - 1))); do
-#    sudo cpufreq-set -c $i -g performance;
+#sudo apt install cpufrequtils
+#for i in $(seq 0 $(($(nproc) - 1)));do sudo cpufreq-set -c $i -g performance;
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
 nohup airflow webserver -p 8000 >/home/webserver.log 2>&1 &
 nohup airflow scheduler >/home/scheduler.log 2>&1 &

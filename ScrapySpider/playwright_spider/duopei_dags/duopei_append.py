@@ -1,19 +1,16 @@
-from __future__ import annotations
 
 # [START import_module]
 
 import pendulum
-
 from airflow.decorators import dag, task
 from datetime import timedelta
-
 
 # [END import_module]
 
 
 # [START instantiate_dag]
 @dag(
-        schedule="*/1 * * * *",
+        schedule="*/2 * * * *",
         start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Shanghai"),
         catchup=False,
         tags=["duopei", "spider"],
@@ -74,16 +71,18 @@ def duopei_append():
             print(' # 在爬虫运行完成后检查是否有错误，并引发异常（如果有）')
             raise errors[0]
 
-    # callable_external_python('http://tj5uhmrpeq.duopei-m.featnet.com')
+    def start_task():
+        import json
+        file_path = '/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/data/user_selector.json'
+        with open(file_path, "r", encoding='utf-8') as file:
+            json_data = file.read()
+        start_urls = list(json.loads(json_data).keys())
+        for i in start_urls:
+            crawl_duopei.override(task_id='C_' + json.loads(json_data)[i]['company'])(i)
+
+    start_task()
     # crawl_duopei(url='http://tj5uhmrpeq.duopei-m.featnet.com')
     # crawl_duopei.expand(url=query_urls())
-    import json
-    file_path = '/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/data/user_selector.json'
-    with open(file_path, "r", encoding='utf-8') as file:
-        json_data = file.read()
-    start_urls = list(json.loads(json_data).keys())
-    for i in start_urls:
-        crawl_duopei.override(task_id='C_' + json.loads(json_data)[i]['company'])(i)
 
 
 # [START dag_invocation]
