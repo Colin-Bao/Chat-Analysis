@@ -8,10 +8,7 @@
 import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import sys
-import os
-
-sys.path.append(os.path.abspath('/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider'))
+from config import sqlalchemy_uri
 from items import UserUpdate, UserAppend  # noqa
 
 
@@ -27,7 +24,7 @@ class UserPipeline:
 
     def open_spider(self, spider):
         # 创建数据库连接
-        self.engine = create_engine('mysql+mysqlconnector://colin:^Q}spft2L0bmX^+=X=v0@140.250.51.124/duopei?charset=utf8mb4')
+        self.engine = create_engine(sqlalchemy_uri)
         self.Session = sessionmaker(bind=self.engine)
 
     def process_item(self, item, spider):

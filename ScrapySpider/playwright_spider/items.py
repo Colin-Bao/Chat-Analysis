@@ -7,7 +7,7 @@ from scrapy.item import Item, Field
 from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey, create_engine, event
 from sqlalchemy.orm import declarative_base, declared_attr, relationship, validates, object_session, sessionmaker
 import hashlib
-
+from config import sqlalchemy_uri
 Base = declarative_base()
 
 
@@ -125,7 +125,7 @@ def before_insert_listener(mapper, connection, target):
 
 
 event.listen(UserAppend, 'before_insert', before_insert_listener)
-engine = create_engine('mysql+mysqlconnector://colin:^Q}spft2L0bmX^+=X=v0@140.250.51.124/duopei?charset=utf8mb4')  # Adjust the connection string
+engine = create_engine(sqlalchemy_uri)  # Adjust the connection string
 Session = sessionmaker(bind=engine)
 session = Session()
 
