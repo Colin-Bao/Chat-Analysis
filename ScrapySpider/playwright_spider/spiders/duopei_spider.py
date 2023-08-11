@@ -13,6 +13,7 @@ from items import UserUpdate, UserAppend, UserItem  # noqa
 
 class DuopeiSpider(Spider):
     name = "duopei"
+    
     custom_settings = {
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "CONCURRENT_REQUESTS": 1,
