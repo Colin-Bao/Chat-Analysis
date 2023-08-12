@@ -3,6 +3,5 @@
 .DS_Store
 /ScrapySpider/playwright_spider/spiders/data/duopei.jsonlines
 /ScrapySpider/playwright_spider/config.py
-
-
-!/ScrapySpider/playwright_spider/config.py
+*/config.py
+/ScrapySpider/playwright_spider/spiders/config_s.py
