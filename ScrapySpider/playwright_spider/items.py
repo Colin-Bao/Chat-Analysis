@@ -6,6 +6,7 @@
 from scrapy.item import Item, Field
 from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey, create_engine, event
 from sqlalchemy.orm import declarative_base, declared_attr, relationship, validates, object_session, sessionmaker
+from sqlalchemy.orm.attributes import get_history
 import hashlib
 from config import sqlalchemy_uri
 Base = declarative_base()
@@ -102,9 +103,9 @@ class UserItem(Item):
 
 
 # 外键约束
-def before_insert_listener(mapper, connection, target):
+def before_insert_listener_append(mapper, connection, target):
     # Check if the employee_id exists in the UserUpdate table
-    user_update_record = connection.scalar(
+    existing_record = connection.scalar(
             UserUpdate.__table__.select().where(UserUpdate.employee_id == target.employee_id)
     )
 
@@ -112,7 +113,7 @@ def before_insert_listener(mapper, connection, target):
     data_to_insert = {key: value for key, value in target.__dict__.items() if key not in ('id', 'append_id', '_sa_instance_state')}
 
     # If not, insert a new record into UserUpdate
-    if not user_update_record:
+    if not existing_record:
         # Create a dictionary with all the fields from UserAppend, except the id
         # Insert the new record into UserUpdate
         connection.execute(UserUpdate.__table__.insert().values(**data_to_insert))
@@ -124,7 +125,30 @@ def before_insert_listener(mapper, connection, target):
         )
 
 
-event.listen(UserAppend, 'before_insert', before_insert_listener)
+# 更新模式
+def before_insert_listener_update(mapper, connection, target):
+    update_values = {}
+
+    for attr in target.__dict__.keys():
+        if attr != '_sa_instance_state' and not attr.startswith('_'):
+            added, unchanged, deleted = get_history(target, attr)
+            if added[0] is not None:  # Only update if the new value is not None
+                update_values[attr] = added[0]
+
+    # If there are any non-null changes, execute the update
+    if update_values:
+        connection.execute(
+                UserUpdate.__table__.update().where(UserUpdate.employee_id == target.employee_id).values(**update_values)
+        )
+
+
+# Attach the listener to the UserUpdate class
+event.listen(UserUpdate, 'before_insert', before_insert_listener_update)
+
+# 追加模式 事件监听
+event.listen(UserAppend, 'before_insert', before_insert_listener_append)
+
+# 连接数据库
 engine = create_engine(sqlalchemy_uri)  # Adjust the connection string
 Session = sessionmaker(bind=engine)
 session = Session()

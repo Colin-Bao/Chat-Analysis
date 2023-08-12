@@ -1,24 +1,24 @@
-
 # [START import_module]
 
 import pendulum
 from airflow.decorators import dag, task
 from datetime import timedelta
 
+
 # [END import_module]
 
 
 # [START instantiate_dag]
 @dag(
-        schedule="*/2 * * * *",
+        schedule="*/20 * * * *",
         start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Shanghai"),
         catchup=False,
         tags=["duopei", "spider"],
-        # max_active_tasks=16,  # 限制并发数
+        # max_active_tasks=6,  # 限制并发数
         max_active_runs=1,  # 限制同时运行的实例数量
-        dagrun_timeout=timedelta(minutes=2),
+        dagrun_timeout=timedelta(minutes=20),
 )
-def duopei_append():
+def duopei_update():
     @task()
     def query_urls():
         import json
@@ -63,7 +63,7 @@ def duopei_append():
         # 连接到 spider_error 信号以捕获异常
         dispatcher.connect(handle_spider_error, signal=signals.spider_error)
 
-        process.crawl(crawler, start_url=url)
+        process.crawl(crawler, start_url=url, use_url_crawl=True, crawl_mode_append=False)
         process.start()
 
         # 在爬虫运行完成后检查是否有错误，并引发异常（如果有）
@@ -77,6 +77,7 @@ def duopei_append():
         with open(file_path, "r", encoding='utf-8') as file:
             json_data = file.read()
         start_urls = list(json.loads(json_data).keys())
+        # start_urls = ['http://bhrl3uc0hs.duopei-m.xiaoyemaovip.com']
         for i in start_urls:
             crawl_duopei.override(task_id='C_' + json.loads(json_data)[i]['company'])(i)
 
@@ -86,4 +87,4 @@ def duopei_append():
 
 
 # [START dag_invocation]
-duopei_append()
+duopei_update()

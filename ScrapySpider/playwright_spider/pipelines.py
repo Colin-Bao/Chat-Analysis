@@ -54,26 +54,11 @@ class UserPipeline:
         # 数据清洗
         user_orm = clean_data(user_orm)
 
-        # 追加模式
-        if crawl_mode_append == 'true' or crawl_mode_append:
-            session.add(user_orm)
-            session.commit()
-
-        # 更新模式
-        else:
-            existing_user = session.query(UserUpdate).filter_by(employee_id=user_orm.employee_id).one_or_none()
-            # 存在employee_id 则更新
-            if existing_user:
-                existing_user.homepage = user_orm.homepage if user_orm.homepage else existing_user.homepage
-                existing_user.audio_url = user_orm.audio_url if user_orm.audio_url else existing_user.homepage
-                existing_user.crawl_date = user_orm.crawl_date
-                existing_user.crawl_date_2 = user_orm.crawl_date_2
-                session.commit()
-            else:
-                session.add(user_orm)
-                session.commit()
+        # 追加模式/更新模式
+        session.add(user_orm) if crawl_mode_append == 'true' or crawl_mode_append else session.merge(user_orm)
 
         # 关闭session
+        session.commit()
         session.close()
 
         return item

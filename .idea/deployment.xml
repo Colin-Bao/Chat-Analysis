@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="nizai9a@140.250.51.124" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@192.168.2.13:22 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="nizai9a@140.250.51.124">
@@ -11,11 +11,11 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ubuntu@192.168.2.13">
+      <paths name="ubuntu@192.168.2.13:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
-            <mapping deploy="/Chat-Web" local="$PROJECT_DIR$/../Chat-Web" web="/" />
+            <mapping deploy="/PycharmProjects/Chat-Analysis" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/PycharmProjects/Chat-Web" local="$PROJECT_DIR$/../Chat-Web" web="/" />
           </mappings>
         </serverdata>
       </paths>

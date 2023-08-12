@@ -283,12 +283,12 @@ class PWDownloaderMiddleware:
                     # 将元素滚动到视野中
                     await element.scroll_into_view_if_needed()
                     # 记录
-                    await page.screenshot(path=screenshot_dir / f'{i}.png')
+                    # await page.screenshot(path=screenshot_dir / f'{i}.png')
                     await element.wait_for(state='visible', timeout=1000)  # 等待元素稳定
 
                 except Exception as e:
                     # 捕获异常截图
-                    await page.screenshot(path=screenshot_dir / f'{i}_locater.png', )
+                    # await page.screenshot(path=screenshot_dir / f'{i}_locater.png', )
                     raise Exception(f"元素定位错误 {e}") from e
 
                 # ---------------------------------- 解析音频 ---------------------------------- #
@@ -296,24 +296,24 @@ class PWDownloaderMiddleware:
                     audio_locator = element.locator(el_dict['user_audio_selector'])
                     await audio_locator.highlight()
                     async with page.expect_response(lambda response: 'mp3' in response.url, timeout=1500) as response_info:
-                        await audio_locator.click(timeout=1000)
+                        await audio_locator.click(timeout=1500)
                     user_dict['audio_url'] = (await response_info.value).url
                 except Exception as e:
                     # 捕获异常截图
                     # await page.screenshot(path=screenshot_dir / f'{i}_audio.png')
                     raise Exception(f"解析音频错误 {e}") from e
 
-                # ---------------------------------- 解析url跳转 ---------------------------------- #
-                try:
-                    await element.highlight()
-                    await element.click()
-                    await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
-                    user_dict['homepage'] = page.url
-                    await page.go_back()  # 回到原始页面
-                except Exception as e:
-                    # 捕获异常截图
-                    # await page.screenshot(path=screenshot_dir / f'{i}_url.png')
-                    raise Exception(f"解析url跳转错误 {e}") from e
+                # ---------------------------------- 解析url跳转[暂时不做] ---------------------------------- #
+                # try:
+                #     await element.highlight()
+                #     await element.click()
+                #     await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
+                #     user_dict['homepage'] = page.url
+                #     await page.go_back()  # 回到原始页面
+                # except Exception as e:
+                #     # 捕获异常截图
+                #     # await page.screenshot(path=screenshot_dir / f'{i}_url.png')
+                #     raise Exception(f"解析url跳转错误 {e}") from e
 
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
                 logging.getLogger('get_user_urls').error(f"[{el_dict['company']} {e}")
