@@ -19,14 +19,14 @@ class DuopeiSpider(Spider):
     custom_settings = {
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "CONCURRENT_REQUESTS": 1,
-            "LOG_LEVEL": "ERROR",
+            "LOG_LEVEL": "INFO",
             "TELNETCONSOLE_ENABLED": False,
             "COOKIES_ENABLED": False,
             'ROBOTSTXT_OBEY': False,
 
     }
 
-    def __init__(self, start_url: str = None, **kwargs):
+    def __init__(self, start_url: str, crawl_info: list, db_mode, **kwargs):
         super(DuopeiSpider, self).__init__(**kwargs)
 
         # 创建数据库会话
@@ -53,8 +53,8 @@ class DuopeiSpider(Spider):
         self.meta_dict = {
                 'PWDownloaderMiddleware': True,
                 'Playwright_Headless': True,
-                'db_mode': 'append',
-                'crawl_info': ['basic']
+                'db_mode': db_mode,
+                'crawl_info': crawl_info
         }
 
         # Override default meta values
@@ -62,7 +62,7 @@ class DuopeiSpider(Spider):
 
     def start_requests(self):
         for url in self.start_urls:
-            print('----------------收到参数-----------------', self.start_urls)
+            print('--------------------------------收到参数-------------------------------- \n', self.start_urls, self.meta_dict)
             meta = self.meta_dict
             meta.update({'locator_dict': self.selector_dict[url]})  # noqa
             yield Request(url=url, callback=self.parse, meta=meta, errback=self.handle_error)
