@@ -53,7 +53,7 @@ def crawl_duopei(url, crawl_info, db_mode):
     if errors:
         print(f'----------------------{url}引发异常---------------------- \n')
         raise errors[0]
-
+    return url
 
 def get_company_list() -> list[(), ()]:
     from airflow.providers.mysql.hooks.mysql import MySqlHook  # noqa

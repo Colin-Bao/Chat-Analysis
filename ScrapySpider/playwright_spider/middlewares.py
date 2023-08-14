@@ -236,6 +236,10 @@ class PWDownloaderMiddleware:
 
                     # 将元素滚动到视野中
                     await element.scroll_into_view_if_needed()
+
+                    # 移除阻碍元素
+                    await self.remove_node_by_selector(page, locator_dict['remove_dialog_selector'])
+
                     # 记录
                     # await page.screenshot(path=screenshot_dir / f'{i}.png')
                     await element.wait_for(state='visible', timeout=1000)  # 等待元素稳定
@@ -264,7 +268,7 @@ class PWDownloaderMiddleware:
                     case 'homepage':
                         try:
                             await element.highlight()
-                            await element.click()
+                            await element.click(click_count=1)
                             await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
                             user_dict['homepage'] = page.url
                             await page.go_back()  # 回到原始页面
