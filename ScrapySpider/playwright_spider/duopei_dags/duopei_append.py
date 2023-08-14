@@ -1,9 +1,9 @@
-
 # [START import_module]
 
 import pendulum
 from airflow.decorators import dag, task
 from datetime import timedelta
+
 
 # [END import_module]
 
@@ -20,7 +20,6 @@ from datetime import timedelta
         dagrun_timeout=timedelta(minutes=2),
 )
 def duopei_append():
-
     @task.external_python(python='/home/nizai9a/miniconda3/envs/PlaySpider/bin/python')
     def crawl_duopei(url):
         """
@@ -41,7 +40,7 @@ def duopei_append():
         # 添加Scrapy项目路径到系统路径
         SCRAPY_ROOT_PATH = Path("~/PycharmProjects/Chat-Analysis").expanduser()
         sys.path.extend([str(SCRAPY_ROOT_PATH), str(SCRAPY_ROOT_PATH / 'ScrapySpider')])
-        os.chdir(SCRAPY_ROOT_PATH)  # 更改工作目录到Scrapy项目
+        os.chdir(str(SCRAPY_ROOT_PATH / 'ScrapySpider'))  # 更改工作目录到Scrapy项目
 
         # Scrapy项目路径
         from ScrapySpider.playwright_spider.spiders.duopei_spider import DuopeiSpider
@@ -65,7 +64,7 @@ def duopei_append():
 
         # 在爬虫运行完成后检查是否有错误，并引发异常（如果有）
         if errors:
-            print(' # 在爬虫运行完成后检查是否有错误，并引发异常（如果有）')
+            print(f'----------------------{url}引发异常---------------------- \n')
             raise errors[0]
 
     # 主流程
@@ -78,15 +77,15 @@ def duopei_append():
 
         # 执行查询并获取结果列表
         start_urls = cursor.fetchall()
-        start_urls = (('http://exjomkwuav.duopei-m.manongnet.cn', '糖恋'),)
-
-        # 动态创建task
-        for website, company in start_urls:
-            crawl_duopei.override(task_id='C_' + company)(website)
+        # start_urls = (('http://exjomkwuav.duopei-m.manongnet.cn', '糖恋'),)
 
         # 关闭游标
         cursor.close()
         conn.close()
+
+        # 动态创建task
+        for company, website in start_urls:
+            crawl_duopei.override(task_id='C_' + company)(website)
 
     start_task()
     # crawl_duopei(url='http://tj5uhmrpeq.duopei-m.featnet.com')

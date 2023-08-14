@@ -3,3 +3,4 @@
 .DS_Store
 /ScrapySpider/playwright_spider/spiders/data/duopei.jsonlines
 /private_config/
+/ScrapySpider/playwright_spider/private_config/config.py

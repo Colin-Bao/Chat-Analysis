@@ -10,7 +10,6 @@ import sys
 SCRAPY_ROOT_PATH = Path("~/PycharmProjects/Chat-Analysis").expanduser()
 sys.path.extend([str(SCRAPY_ROOT_PATH), str(SCRAPY_ROOT_PATH / 'ScrapySpider')])
 
-# noinspection PyPep8
 from ScrapySpider.playwright_spider.items import UserUpdate, UserAppend, UserItem, Company  # noqa
 from ScrapySpider.playwright_spider.private_config.config import sqlalchemy_uri  # noqa
 
@@ -20,9 +19,11 @@ class DuopeiSpider(Spider):
     custom_settings = {
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "CONCURRENT_REQUESTS": 1,
-            "LOG_LEVEL": "INFO",
+            "LOG_LEVEL": "ERROR",
             "TELNETCONSOLE_ENABLED": False,
             "COOKIES_ENABLED": False,
+            'ROBOTSTXT_OBEY': False,
+
     }
 
     def __init__(self, start_url: str = None, **kwargs):
@@ -68,6 +69,7 @@ class DuopeiSpider(Spider):
 
     def parse(self, response, **kwargs):
         # 抓取数据
+        # print('----------------开始抓取数据-----------------', json.loads(response.body))
         for user_data in json.loads(response.body)['res']:
             # 创建 User 对象
             match self.meta_dict['db_mode']:
