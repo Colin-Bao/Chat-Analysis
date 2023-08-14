@@ -1,21 +1,19 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+import sys
 
-Base = declarative_base()
+from pathlib import Path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+# 添加Scrapy项目路径到系统路径
+sys.path.extend(map(str, [Path("~/PycharmProjects/Chat-Analysis").expanduser(),
+                          Path("~/PycharmProjects/Chat-Analysis/ScrapySpider").expanduser()]))
 
-class UserBase(Base):
-    __abstract__ = True
-    id = Column(Integer, primary_key=True)
+# 创建数据库会话
+from ScrapySpider.playwright_spider.items import Company
+from ScrapySpider.playwright_spider.private_config.config import sqlalchemy_uri
 
+session = sessionmaker(bind=create_engine(sqlalchemy_uri))()
 
-class UserUpdate(Base):
-    __tablename__ = 'user_update'
-    children = relationship("UserAppend", back_populates="parent")
-
-
-class UserAppend(Base):
-    __tablename__ = 'user_append'
-    parent_id = Column(Integer, ForeignKey('user_update.id'))
-    parent = relationship("UserUpdate", back_populates="children")
+# 执行查询并获取结果列表
+urls_list = [(url[0], url[1]) for url in session.query(Company.website, Company.company).all()]
+print(urls_list)

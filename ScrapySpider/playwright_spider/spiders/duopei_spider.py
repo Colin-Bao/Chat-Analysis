@@ -1,14 +1,18 @@
-import logging
-
 import json
-from pathlib import Path
 from scrapy import Spider
 from scrapy.http import Request
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from pathlib import Path
 import sys
-import os
 
-sys.path.append(os.path.abspath('/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider'))
-from items import UserUpdate, UserAppend, UserItem  # noqa
+# 自定义模块
+SCRAPY_ROOT_PATH = Path("~/PycharmProjects/Chat-Analysis").expanduser()
+sys.path.extend([str(SCRAPY_ROOT_PATH), str(SCRAPY_ROOT_PATH / 'ScrapySpider')])
+
+# noinspection PyPep8
+from ScrapySpider.playwright_spider.items import UserUpdate, UserAppend, UserItem, Company  # noqa
+from ScrapySpider.playwright_spider.private_config.config import sqlalchemy_uri  # noqa
 
 
 class DuopeiSpider(Spider):
@@ -23,48 +27,63 @@ class DuopeiSpider(Spider):
 
     def __init__(self, start_url: str = None, **kwargs):
         super(DuopeiSpider, self).__init__(**kwargs)
-        # 读取定位器文件并创建start_urls列表
-        file_path = '/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/data/user_selector.json'
-        with open(file_path, "r", encoding='utf-8') as file:
-            self.json_data = file.read()
-        self.start_urls = [start_url]
 
-        # logging.getLogger('log').error(f'读取定位器文件并创建start_urls列表 {self.start_urls}')
+        # 创建数据库会话
+        engine = create_engine(sqlalchemy_uri)  # 使用你的数据库连接字符串
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # 执行查询
+        query_result = session.query(Company).all()
+
+        # 初始化结果字典
+        self.selector_dict = {}
+
+        # 遍历查询结果并构造字典
+        for obj in query_result:
+            website = obj.website  # 假设url是CompanySelector类的一个属性
+            other_attributes = {key: value for key, value in obj.__dict__.items() if key != 'website' and key != '_sa_instance_state'}
+            self.selector_dict[website]: dict = other_attributes
+
+        # 创建start_urls列表
+        self.start_urls = [start_url]
 
         # Set default meta values
         self.meta_dict = {
                 'PWDownloaderMiddleware': True,
                 'Playwright_Headless': True,
-                'Playwright_Method': 'get_user_info',
-                'use_url_crawl': False,
-                'crawl_mode_append': True
+                'db_mode': 'append',
+                'crawl_info': ['basic']
         }
 
-        # Override default meta values with any parameters passed from the command line
+        # Override default meta values
         self.meta_dict.update(kwargs)
 
     def start_requests(self):
         for url in self.start_urls:
             print('----------------收到参数-----------------', self.start_urls)
-            meta = {'locator_dict': json.loads(self.json_data)[url]}
-            meta.update(self.meta_dict)
+            meta = self.meta_dict
+            meta.update({'locator_dict': self.selector_dict[url]})  # noqa
             yield Request(url=url, callback=self.parse, meta=meta, errback=self.handle_error)
 
     def parse(self, response, **kwargs):
         # 抓取数据
         for user_data in json.loads(response.body)['res']:
             # 创建 User 对象
-            if self.meta_dict['crawl_mode_append'] == 'true' or self.meta_dict['crawl_mode_append']:
-                user = UserAppend(**user_data)
-                user.append_id = user.create_append_id()
-            else:
-                user = UserUpdate(**user_data)
+            match self.meta_dict['db_mode']:
+                case 'append':
+                    user = UserAppend(**user_data)
+                    user.append_id = user.create_append_id()
+                case 'update':
+                    user = UserUpdate(**user_data)
+                case _:
+                    raise ValueError(f'Invalid db_mode: {self.meta_dict["db_mode"]}')
 
             # 生成 employee_id
             user.employee_id = user.create_employee_id()
 
             # 创建 Item 对象
-            item = UserItem(user, self.meta_dict['crawl_mode_append'])
+            item = UserItem(user, self.meta_dict['db_mode'])
 
             # yield user 对象
             yield item

@@ -9,9 +9,11 @@ Base = declarative_base()
 
 # 定义UserSelector类，代表数据库表
 class UserSelector(Base):
-    __tablename__ = 'user_selector'
-    company = Column(String(255), primary_key=True)
-    url = Column(String(255), default=None)
+    __tablename__ = 'company'
+
+    #
+    company = Column(String(50), primary_key=True)
+    website = Column(String(255), default=None)
     remove_dialog_selector = Column(String(255), default=None)
     remove_other_selector = Column(String(255), default=None)
     page_finished_selector = Column(String(255), default=None)
@@ -57,7 +59,7 @@ def json_to_database():
             print(key)
             user_selector = UserSelector(
                     company=value['company'],
-                    url=key,
+                    website=key,
                     remove_other_selector=value['remove_other_selector'],
                     remove_dialog_selector=value['remove_dialog_selector'],
                     user_card_selector=value['user_card_selector'],

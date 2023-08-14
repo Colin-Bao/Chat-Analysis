@@ -8,8 +8,7 @@
 import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config import sqlalchemy_uri
-from items import UserUpdate, UserAppend  # noqa
+from ScrapySpider.playwright_spider.private_config.config import sqlalchemy_uri
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -40,7 +39,7 @@ class UserPipeline:
             date.Tag = date.Tag if date.Tag else date.TagSep
 
             # 提取在线信息
-            date.online_status = True if ('在线' in (date.Online or '')) or ((date.Online or '') != '') else False
+            date.online_status = True if ('在线' in (date.Online or '')) else False
 
             return date
 
@@ -49,13 +48,13 @@ class UserPipeline:
 
         # 将item转换为User对象并添加到session
         user_orm = item['model']
-        crawl_mode_append = item['crawl_mode_append']
+        db_mode = item['db_mode']
 
         # 数据清洗
         user_orm = clean_data(user_orm)
 
         # 追加模式/更新模式
-        session.add(user_orm) if crawl_mode_append == 'true' or crawl_mode_append else session.merge(user_orm)
+        session.add(user_orm) if db_mode == 'append' else session.merge(user_orm)
 
         # 关闭session
         session.commit()

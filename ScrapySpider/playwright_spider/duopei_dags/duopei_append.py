@@ -10,7 +10,8 @@ from datetime import timedelta
 
 # [START instantiate_dag]
 @dag(
-        schedule="*/2 * * * *",
+        # schedule="*/2 * * * *",
+        schedule=None,
         start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Shanghai"),
         catchup=False,
         tags=["duopei", "spider"],
@@ -19,14 +20,6 @@ from datetime import timedelta
         dagrun_timeout=timedelta(minutes=2),
 )
 def duopei_append():
-    @task()
-    def query_urls():
-        import json
-        file_path = '/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/data/user_selector.json'
-        with open(file_path, "r", encoding='utf-8') as file:
-            json_data = file.read()
-        start_urls = list(json.loads(json_data).keys())
-        return start_urls
 
     @task.external_python(python='/home/nizai9a/miniconda3/envs/PlaySpider/bin/python')
     def crawl_duopei(url):
@@ -43,11 +36,15 @@ def duopei_append():
         from scrapy.utils.project import get_project_settings
         from scrapy.signalmanager import dispatcher
         from scrapy import signals
+        from pathlib import Path
 
         # 添加Scrapy项目路径到系统路径
-        sys.path.append(os.path.abspath('/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider'))
-        from spiders.duopei_spider import DuopeiSpider  # noqa
-        os.chdir('/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider')  # 更改工作目录到Scrapy项目
+        SCRAPY_ROOT_PATH = Path("~/PycharmProjects/Chat-Analysis").expanduser()
+        sys.path.extend([str(SCRAPY_ROOT_PATH), str(SCRAPY_ROOT_PATH / 'ScrapySpider')])
+        os.chdir(SCRAPY_ROOT_PATH)  # 更改工作目录到Scrapy项目
+
+        # Scrapy项目路径
+        from ScrapySpider.playwright_spider.spiders.duopei_spider import DuopeiSpider
 
         # 用来存储异常的列表
         errors = []
@@ -71,14 +68,25 @@ def duopei_append():
             print(' # 在爬虫运行完成后检查是否有错误，并引发异常（如果有）')
             raise errors[0]
 
+    # 主流程
     def start_task():
-        import json
-        file_path = '/home/nizai9a/PycharmProjects/Chat-Analysis/ScrapySpider/playwright_spider/data/user_selector.json'
-        with open(file_path, "r", encoding='utf-8') as file:
-            json_data = file.read()
-        start_urls = list(json.loads(json_data).keys())
-        for i in start_urls:
-            crawl_duopei.override(task_id='C_' + json.loads(json_data)[i]['company'])(i)
+        from airflow.providers.mysql.hooks.mysql import MySqlHook  # noqa
+        # 创建数据库会话
+        conn = MySqlHook(mysql_conn_id='mysql_duopei').get_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT company, website FROM company;")
+
+        # 执行查询并获取结果列表
+        start_urls = cursor.fetchall()
+        start_urls = (('http://exjomkwuav.duopei-m.manongnet.cn', '糖恋'),)
+
+        # 动态创建task
+        for website, company in start_urls:
+            crawl_duopei.override(task_id='C_' + company)(website)
+
+        # 关闭游标
+        cursor.close()
+        conn.close()
 
     start_task()
     # crawl_duopei(url='http://tj5uhmrpeq.duopei-m.featnet.com')

@@ -2,9 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-import os
 
-from pathlib import Path
 
 import logging
 
@@ -93,6 +91,12 @@ class PWDownloaderMiddleware:
                 break
 
     async def remove_node_by_selector(self, page, remove_selector: str):
+        """
+        通过选择器移除节点
+        :param page:
+        :param remove_selector:
+        :return:
+        """
         if remove_selector:
             await page.evaluate('''
                     O => {
@@ -105,31 +109,16 @@ class PWDownloaderMiddleware:
                     }
                     ''', remove_selector)
 
-        # logging.getLogger('移除节点').info(f'移除节点：{remove_selector}')
-        # if button_selector:
-        #     button_locator = page.locator(button_selector)
-        #     if await button_locator.count():
-        #         text = await button_locator.all_inner_texts()
-        #         logging.getLogger('').info(text)
-        #         await button_locator.highlight()
-        #         await page.evaluate('''
-        #                     (selector) => {const element = document.querySelector(selector);
-        #                     if (element) {element.parentNode.removeChild(element);}}''', button_selector)
-
-        # await button_locator.click(timeout=1000)
-
-        # await page.wait_for_timeout(1000)
-
-    async def parse_clerk(self, request, page: Page) -> [{}, ...]:
+    async def parse_clerk_basic(self, request, page: Page) -> [{}, ...]:
         """
         店员信息解析
         :return:
         """
 
         # 提取用户信息JS代码
-        JS_USER_INFO = '''
+        js_user_info = '''
         O => {
-            const elements = document.querySelectorAll(O.userSelector);
+            const elements = document.querySelectorAll(O.user_card_selector);
             const data = [];
             let index = 0;
         
@@ -138,105 +127,70 @@ class PWDownloaderMiddleware:
             const nowFormatted = now.toISOString().slice(0, 19).replace('T', ' ');
         
             for (const element of elements) {
+                
+                // 额外元数据
                 const row = {};
                 row['rank_2'] = index;
                 index = index + 1
                 row['crawl_date_2'] = nowFormatted;
-                row['company'] = O.company;
-                row['website'] = O.website;
-                for (const [attr, classname] of Object.entries(O.itemDict)) {
+                
+                // 基本信息解析
+                for (let [attr, classname] of Object.entries(O)) {
+                    if (['user_card_selector','remove_dialog_selector', 'remove_other_selector', 'page_finished_selector', 'user_audio_selector'].includes(attr)) {
+                        continue;
+                    }
+                    attr = attr.replace('_selector', '');
                     const subElement = element.querySelector(classname);
+                    
+                    // 定位成功
                     if (subElement) {
                         let textContent;
-                        if (attr === 'SexBg') {
-                            textContent = subElement.getAttribute("style").trim();
-                        } else if (attr === 'GradeImg') {
-                            textContent = subElement.getAttribute("src").trim();
-                        } else if (attr === 'SexImg') {
-                            textContent = subElement.getAttribute("src").trim();
-                        } else if (attr === 'AvatarImg') {
-                            textContent = subElement.getAttribute("src").trim();
-                        } else if (attr === 'TagSep') {
-                            let texts = Array.from(subElement.querySelectorAll("span"), span => span.textContent.trim());
-                            textContent = texts.join('|');
-                        } else if (attr === 'ServiceSep') {
-                            let texts = Array.from(subElement.querySelectorAll("span"), span => span.textContent.trim());
-                            textContent = texts.join('|');
-                        }  
-                        else {
-                            textContent = subElement.textContent.trim();
+                        switch (attr) {
+                              case 'SexBg':
+                                textContent = subElement.getAttribute("style").trim();
+                                break;
+                              case 'GradeImg':
+                              case 'SexImg':
+                              case 'AvatarImg':
+                                textContent = subElement.getAttribute("src").trim();
+                                break;
+                              case 'TagSep':
+                              case 'ServiceSep':
+                                let texts = Array.from(subElement.querySelectorAll("span"), span => span.textContent.trim());
+                                textContent = texts.join('|');
+                                break;
+                              default:
+                                textContent = subElement.textContent.trim();
                         }
                         row[attr] = textContent;
                     }
+                    // 定位失败
                     else{
                         row[attr] = classname;
                     }
                 }
+                
+                // 合并数据
                 data.push(row);
-                //if (Object.keys(O.itemDict).every(key => key in row)) {
-                //    data.push(row);
-                //}
             }
             return data;
         }
         '''
 
         # 定位器字典
-        el_dict = request.meta.get('locator_dict')
-        logging.getLogger('parse_clerk').info(f"店员信息解析：{request.url}, {el_dict['company']}")
+        locator_dict = {k: v for k, v in request.meta['locator_dict'].items() if k not in
+                        ['remove_dialog_selector', 'remove_other_selector', 'page_finished_selector', 'user_audio_selector']}
+
+        logging.getLogger('parse_clerk').info(f"店员信息解析：{request.url}, {locator_dict['company']}")
 
         # JS提取
-        user_dict_list = await page.evaluate(JS_USER_INFO,
-                                             {"userSelector": el_dict['user_card_selector'],
-                                              'itemDict': el_dict['user_info_selector'],
-                                              'company': el_dict['company'],
-                                              'website': request.url})  # 增加需要的信息
+        user_dict_list = await page.evaluate(js_user_info, locator_dict)
         return user_dict_list
 
-    async def get_user_info(self, request, page: Page, debug_batch: int = 1000) -> {}:
-        """
-        获取用户信息
-        :param debug_batch: 用于小批量调试
-        :param request:
-        :param page:
-        :return: 返回用户信息字典
-        """
-
-        # 定位器字典
-        el_dict = request.meta.get('locator_dict')
-
-        # 改变class
-        change_body_selector = el_dict.get('change_body_selector', None)
-        if change_body_selector:
-            await page.evaluate("""O=>{document.querySelector(O).className ="";} """, el_dict.get('change_body_selector', None))
-
-        # 删除元素
-        await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
-
-        # 滚动页面
-        await self.scroll_page(page.locator(el_dict['user_card_selector']), page.locator(el_dict['page_finished_selector']))
-
-        # 删除元素
-        await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
-
-        # 常规爬虫
-        user_dict_list = await self.parse_clerk(request, page)
-
-        # 截断
-        user_dict_list = user_dict_list[:min(debug_batch, len(user_dict_list))]
-        # logging.getLogger('常规爬虫').info(user_dict_list)
-
-        # 按需调用url爬虫
-        if request.meta.get('use_url_crawl', False) or request.meta.get('use_url_crawl', 'false') == 'true':
-            url_dict_list = await self.get_user_urls(request, page, debug_batch)
-            assert len(url_dict_list) == len(user_dict_list)  # 保证数量一致
-            return {'res': [{**d1, **d2} for d1, d2 in zip(url_dict_list, user_dict_list)]}
-        else:
-            return {'res': user_dict_list}
-
-    async def get_user_urls(self, request, page: Page, debug_batch) -> [{}, ...]:
+    async def parse_clerk_audio_homepage(self, request, page: Page, crawl_info: str, debug_batch) -> [{}, ...]:
         """
         复杂的url爬虫，经常遇到网络响应问题
+        :param crawl_info:
         :param request:
         :param page:
         :param debug_batch:调试数量
@@ -246,25 +200,25 @@ class PWDownloaderMiddleware:
         # page.set_default_timeout(2000)
 
         # 定位器字典
-        el_dict = request.meta.get('locator_dict')
+        locator_dict = request.meta['locator_dict']
 
         # 定义截图路径
-        screenshot_dir = Path(__file__).resolve().parent / 'screenshot' / f"{el_dict['company']}"
-        os.makedirs(screenshot_dir, exist_ok=True)
+        # screenshot_dir = Path(__file__).resolve().parent / 'screenshot' / f"{el_dict['company']}"
+        # os.makedirs(screenshot_dir, exist_ok=True)
 
         # 移除阻碍元素
-        await self.remove_node_by_selector(page, el_dict.get('remove_other_selector', None))
-        await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
+        await self.remove_node_by_selector(page, locator_dict['remove_other_selector'])
+        await self.remove_node_by_selector(page, locator_dict['remove_dialog_selector'])
 
         # 定位到具有跳转链接的元素
-        click_locators = page.locator(el_dict['user_card_selector'])
+        click_locators = page.locator(locator_dict['user_card_selector'])
 
         # 获取元素的数量
         elements_count = await click_locators.count()
         user_dict_list = []
 
         for i in tqdm(range(elements_count)[:min(debug_batch, elements_count)]):
-            # 用于存储信息的字典
+            # ---------------------------------- 用于存储信息的字典 ---------------------------------- #
             user_dict = {'rank': i,
                          'crawl_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                          'audio_url': None,
@@ -274,7 +228,7 @@ class PWDownloaderMiddleware:
                 # ---------------------------------- 定位元素 ---------------------------------- #
                 try:
                     # 移除阻碍元素
-                    await self.remove_node_by_selector(page, el_dict.get('remove_dialog_selector', None))
+                    await self.remove_node_by_selector(page, locator_dict['remove_dialog_selector'])
 
                     # 定位当前元素
                     element = click_locators.nth(i)
@@ -291,32 +245,38 @@ class PWDownloaderMiddleware:
                     # await page.screenshot(path=screenshot_dir / f'{i}_locater.png', )
                     raise Exception(f"元素定位错误 {e}") from e
 
-                # ---------------------------------- 解析音频 ---------------------------------- #
-                try:
-                    audio_locator = element.locator(el_dict['user_audio_selector'])
-                    await audio_locator.highlight()
-                    async with page.expect_response(lambda response: 'mp3' in response.url, timeout=1500) as response_info:
-                        await audio_locator.click(timeout=1500)
-                    user_dict['audio_url'] = (await response_info.value).url
-                except Exception as e:
-                    # 捕获异常截图
-                    # await page.screenshot(path=screenshot_dir / f'{i}_audio.png')
-                    raise Exception(f"解析音频错误 {e}") from e
+                match crawl_info:
 
-                # ---------------------------------- 解析url跳转[暂时不做] ---------------------------------- #
-                # try:
-                #     await element.highlight()
-                #     await element.click()
-                #     await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
-                #     user_dict['homepage'] = page.url
-                #     await page.go_back()  # 回到原始页面
-                # except Exception as e:
-                #     # 捕获异常截图
-                #     # await page.screenshot(path=screenshot_dir / f'{i}_url.png')
-                #     raise Exception(f"解析url跳转错误 {e}") from e
+                    # ---------------------------------- 解析音频 ---------------------------------- #
+                    case 'audio':
+                        try:
+                            audio_locator = element.locator(locator_dict['user_audio_selector'])
+                            await audio_locator.highlight()
+                            async with page.expect_response(lambda response: 'mp3' in response.url, timeout=1500) as response_info:
+                                await audio_locator.click(timeout=1500)
+                            user_dict['audio_url'] = (await response_info.value).url
+                        except Exception as e:
+                            # 捕获异常截图
+                            # await page.screenshot(path=screenshot_dir / f'{i}_audio.png')
+                            raise Exception(f"解析音频错误 {e}") from e
+
+                    # ---------------------------------- 解析url跳转---------------------------------- #
+                    case 'homepage':
+                        try:
+                            await element.highlight()
+                            await element.click()
+                            await page.wait_for_url(url='**/detail/**', wait_until='domcontentloaded', timeout=1000)
+                            user_dict['homepage'] = page.url
+                            await page.go_back()  # 回到原始页面
+                        except Exception as e:
+                            # 捕获异常截图
+                            # await page.screenshot(path=screenshot_dir / f'{i}_url.png')
+                            raise Exception(f"解析url跳转错误 {e}") from e
+                    case _:
+                        raise ValueError(f'Invalid crawl_info: {crawl_info}')
 
             except (PlaywrightTimeoutError, PlaywrightError, Exception) as e:
-                logging.getLogger('get_user_urls').error(f"[{el_dict['company']} {e}")
+                logging.getLogger('get_user_urls').error(f"[{locator_dict['company']} {e}")
                 continue
 
             finally:
@@ -324,6 +284,50 @@ class PWDownloaderMiddleware:
                 user_dict_list.append(user_dict)
 
         return user_dict_list
+
+    async def get_clerk_info(self, request, page: Page, debug_batch: int = 1000) -> {}:
+        """
+        获取用户信息
+        :param debug_batch: 用于小批量调试
+        :param request:
+        :param page:
+        :return: 返回用户信息字典
+        """
+
+        # 定位器字典
+        locator_dict = request.meta['locator_dict']
+
+        # 改变class
+        # change_body_selector = locator_dict.get('change_body_selector', None)
+        # if change_body_selector:
+        #     await page.evaluate("""O=>{document.querySelector(O).className ="";} """, locator_dict.get('change_body_selector', None))
+
+        # 删除元素
+        await self.remove_node_by_selector(page, locator_dict['remove_dialog_selector'])
+
+        # 滚动页面
+        await self.scroll_page(page.locator(locator_dict['user_card_selector']), page.locator(locator_dict['page_finished_selector']))
+
+        # 删除元素
+        await self.remove_node_by_selector(page, locator_dict['remove_dialog_selector'])
+
+        # 常规爬虫
+        basic_dict_list = await self.parse_clerk_basic(request, page)
+
+        # 截断
+        basic_dict_list = basic_dict_list[:min(debug_batch, len(basic_dict_list))]
+        # logging.getLogger('常规爬虫').info(basic_dict_list)
+
+        # 基本数据
+        res = {'res': basic_dict_list}
+
+        # 按需解析数据
+        if len(request.meta['crawl_info']) > 1:
+            extra_dict_list = await self.parse_clerk_audio_homepage(request, page, request.meta['crawl_info'][1], debug_batch)
+            assert len(extra_dict_list) == len(basic_dict_list)  # 保证数量一致
+            res.update({'res': [{**d1, **d2} for d1, d2 in zip(extra_dict_list, basic_dict_list)]})
+
+        return res
 
     async def process_request(self, request, spider):
         # Called for each request that goes through the downloader
@@ -347,7 +351,7 @@ class PWDownloaderMiddleware:
 
             # 根据传入的方法不同执行不同的逻辑
             try:
-                res = await self.get_user_info(request, page)
+                res = await self.get_clerk_info(request, page)
             except Exception as e:
                 logging.getLogger('detail').error(f"获取用户信息错误 {e}")
                 raise e

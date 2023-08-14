@@ -105,3 +105,13 @@ airflow webserver
 airflow webserver -D
 airflow scheduler -D
 airflow celery worker -D
+
+
+# 杀死Web服务器进程
+pkill -f "airflow webserver"
+
+# 杀死调度器进程
+pkill -f "airflow scheduler"
+
+# 杀死Celery worker进程
+pkill -f "airflow celery worker"
