@@ -8,11 +8,11 @@
       <jdbc-url>jdbc:mysql://192.168.2.13:3306</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="140.250.51.124" uuid="fa715434-71a2-4946-907f-c9490b66aab1">
+    <data-source source="LOCAL" name="140.250.48.150" uuid="fa715434-71a2-4946-907f-c9490b66aab1">
       <driver-ref>java.sql.Driver</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://140.250.51.124:3306</jdbc-url>
+      <jdbc-url>jdbc:mysql://140.250.48.150:3306</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

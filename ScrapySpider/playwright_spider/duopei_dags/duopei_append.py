@@ -18,13 +18,14 @@ from ScrapySpider.playwright_spider.duopei_dags.duopei_base_dag import crawl_duo
 @dag(
         dag_id='duopei_append',
         description='追加模式，面板数据',
-        schedule="*/2 * * * *",
+        schedule="*/5 * * * *",
         # schedule=None,
         start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Shanghai"),
         catchup=False,
         tags=["多陪", "追加"],
+        # max_active_tasks=2,
         max_active_runs=1,  # 限制同时运行的实例数量
-        dagrun_timeout=timedelta(minutes=2),
+        dagrun_timeout=timedelta(minutes=3),
         default_args={
                 "owner": "colin",
         }

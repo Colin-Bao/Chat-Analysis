@@ -60,11 +60,11 @@ ps aux | grep "airflow webserver"
 pkill -9 -f "airflow scheduler"
 pkill -9 -f "airflow webserver"
 lsof -i :8793
+lsof -i :5555
 lsof -i :8000
 
 
 
-kill -9 1089951
 
 
 #
@@ -102,16 +102,11 @@ airflow scheduler
 airflow webserver
 
 # 使用代理
-airflow webserver -D
-airflow scheduler -D
-airflow celery worker -D
-
+airflow webserver -D && airflow scheduler -D && airflow celery worker -D && airflow celery flower -D
+/home/nizai9a/miniconda3/envs/Airflow/lib/python3.9/site-packages/airflow/config_templates/default_celery.py
+#conf.getint("celery", "WORKER_CONCURRENCY")
 
 # 杀死Web服务器进程
-pkill -f "airflow webserver"
+pkill -f "airflow webserver" && pkill -f "airflow scheduler" && pkill -f "airflow celery worker" && pkill -f "airflow celery flower"
 
-# 杀死调度器进程
-pkill -f "airflow scheduler"
-
-# 杀死Celery worker进程
-pkill -f "airflow celery worker"
+ps aux | grep "celery worker"
