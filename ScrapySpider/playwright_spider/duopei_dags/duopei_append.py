@@ -19,8 +19,8 @@ from ScrapySpider.playwright_spider.duopei_dags.duopei_base_dag import crawl_duo
 @dag(
         dag_id='duopei_append',
         description='追加模式，面板数据',
-        schedule="*/5 * * * *",
-        # schedule=None,
+        # schedule="*/5 * * * *",
+        schedule=None,
         start_date=pendulum.datetime(2023, 1, 1, tz="Asia/Shanghai"),
         catchup=False,
         tags=["多陪", "追加"],
@@ -37,7 +37,9 @@ def duopei_dag():
     def start_task():
         # 动态创建task
         # start_urls = (('http://exjomkwuav.duopei-m.manongnet.cn', '糖恋'),)
-        for company, website in get_company_list():
+        start_urls = get_company_list()
+        start_urls = [('test', 'http://exjomkwuav.duopei-m.manongnet.cn',)]
+        for company, website in start_urls:
             crawl_duopei.override(task_id='B_' + company, retries=2, retry_delay=timedelta(seconds=5))(website, ['basic'], 'append')
 
     start_task()

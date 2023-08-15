@@ -137,7 +137,7 @@ class UserItem(Item):
 
 
 # 外键约束
-def before_insert_listener_append(mapper, connection, target):
+def before_listener_append(mapper, connection, target):
     # Check if the employee_id exists in the UserUpdate table
     existing_record = connection.scalar(
             UserUpdate.__table__.select().where(UserUpdate.employee_id == target.employee_id)
@@ -154,38 +154,21 @@ def before_insert_listener_append(mapper, connection, target):
 
     else:
         # If exists, update the UserUpdate record with new data from UserAppend
-        connection.execute(
-                UserUpdate.__table__.update().where(UserUpdate.employee_id == target.employee_id).values(**data_to_insert)
-        )
+        update_values = {attr: value for attr, value in target.__dict__.items()
+                         if value is not None and attr not in ('id', 'append_id', '_sa_instance_state') and not attr.startswith('_')}
 
+        # 如果存在非空更改，执行更新
+        if update_values:
+            connection.execute(
+                    UserUpdate.__table__.update().where(UserUpdate.employee_id == target.employee_id).values(**update_values)
+            )
 
-# 更新模式
-def before_insert_listener_update(mapper, connection, target):
-    update_values = {}
-
-    for attr in target.__dict__.keys():
-        if attr != '_sa_instance_state' and not attr.startswith('_'):
-            added, unchanged, deleted = get_history(target, attr)
-            if added[0] is not None:  # Only update if the new value is not None
-                update_values[attr] = added[0]
-
-    # If there are any non-null changes, execute the update
-    if update_values:
-        connection.execute(
-                UserUpdate.__table__.update().where(UserUpdate.employee_id == target.employee_id).values(**update_values)
-        )
-
-
-# Attach the listener to the UserUpdate class
-event.listen(UserUpdate, 'before_insert', before_insert_listener_update)
 
 # 追加模式 事件监听
-event.listen(UserAppend, 'before_insert', before_insert_listener_append)
+event.listen(UserAppend, 'before_insert', before_listener_append)
 
 # 连接数据库
 engine = create_engine(sqlalchemy_uri)  # Adjust the connection string
-Session = sessionmaker(bind=engine)
-session = Session()
 
 # Create tables
 Base.metadata.create_all(engine)

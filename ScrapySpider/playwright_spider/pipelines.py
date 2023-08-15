@@ -9,6 +9,7 @@ import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from ScrapySpider.playwright_spider.private_config.config import sqlalchemy_uri
+from ScrapySpider.playwright_spider.items import UserUpdate
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -54,7 +55,20 @@ class UserPipeline:
         user_orm = clean_data(user_orm)
 
         # 追加模式/更新模式
-        session.add(user_orm) if db_mode == 'append' else session.merge(user_orm)
+        if db_mode == 'append':
+            session.add(user_orm)
+        else:
+            # 获取或创建用户对象
+            existing_user = session.query(UserUpdate).filter(UserUpdate.employee_id == user_orm.employee_id).first() or user_orm
+
+            # 更新所有非空字段
+            for col_name in UserUpdate.__table__.columns.keys():
+                new_value = getattr(user_orm, col_name)
+                if new_value is not None:
+                    setattr(existing_user, col_name, new_value)
+
+            # 合并更新
+            session.merge(existing_user)
 
         # 关闭session
         session.commit()
