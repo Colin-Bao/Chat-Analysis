@@ -4,6 +4,7 @@ from pathlib import Path
 import pendulum
 from airflow.decorators import dag, task
 from datetime import timedelta
+from airflow.datasets import Dataset
 
 # 自定义包
 scrapy_root_path = Path("~/PycharmProjects/Chat-Analysis").expanduser()
@@ -28,7 +29,8 @@ from ScrapySpider.playwright_spider.duopei_dags.duopei_base_dag import crawl_duo
         dagrun_timeout=timedelta(minutes=3),
         default_args={
                 "owner": "colin",
-        }
+                "outlets": [Dataset("mysql://user_append")]
+        },
 )
 def duopei_dag():
     # 主流程
@@ -36,7 +38,7 @@ def duopei_dag():
         # 动态创建task
         # start_urls = (('http://exjomkwuav.duopei-m.manongnet.cn', '糖恋'),)
         for company, website in get_company_list():
-            crawl_duopei.override(task_id='B_' + company)(website, ['basic'], 'append')
+            crawl_duopei.override(task_id='B_' + company, retries=2, retry_delay=timedelta(seconds=5))(website, ['basic'], 'append')
 
     start_task()
 
