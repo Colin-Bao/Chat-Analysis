@@ -51,7 +51,7 @@ def duopei_dag():
 
     # 主流程
     crawl_audio()
-    # crawl_homepage()
+    crawl_homepage()
 
 
 # [START dag_invocation]
