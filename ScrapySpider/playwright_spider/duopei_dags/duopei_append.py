@@ -26,7 +26,7 @@ from ScrapySpider.playwright_spider.duopei_dags.duopei_base_dag import crawl_duo
         tags=["多陪", "追加"],
         # max_active_tasks=2,
         max_active_runs=1,  # 限制同时运行的实例数量
-        dagrun_timeout=timedelta(minutes=3),
+        dagrun_timeout=timedelta(minutes=5),
         default_args={
                 "owner": "colin",
                 "outlets": [Dataset("mysql://user_append")]
