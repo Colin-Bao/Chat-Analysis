@@ -4,7 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 
 from scrapy.item import Item, Field
-from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey, create_engine, event
+from sqlalchemy import Column, DateTime, String, Integer, func, Boolean, Unicode, ForeignKey, create_engine, event, Index
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy.orm.attributes import get_history
 import hashlib
@@ -115,6 +115,14 @@ class UserAppend(UserBase):
     append_id = Column(String(255), primary_key=True)
     employee_id = Column(String(255), ForeignKey('user_update.employee_id'))
 
+    # 索引
+    idx_name = Index('idx_name', 'Name')
+    idx_company = Index('idx_company', 'company')
+    idx_created_at = Index('idx_created_at', 'created_at')
+    idx_company_created_at = Index('idx_company_created_at', 'company', 'created_at')
+    idx_created_at_company_name = Index('idx_created_at_company_name', 'created_at', 'company', 'Name')
+
+    # ID生成
     def create_append_id(self):
         hash_object = hashlib.sha256()
         combined_data = str(self.crawl_date_2) + self.company + self.Name
